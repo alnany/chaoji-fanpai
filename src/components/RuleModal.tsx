@@ -4,15 +4,23 @@ import { RULES } from "@/lib/rules";
 import { CardFront } from "./CardFace";
 import { JDicePrompt } from "./DiceControls";
 import { KRecorder } from "./KRecorder";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export function RuleModal() {
   const { showRule, lastFlipped, nineCount, aceCount, closeRule, phase } =
     useGame();
   const [subpanel, setSubpanel] = useState<null | "j" | "k">(null);
 
+  // J card is blocking: must add dice before proceeding.
+  useEffect(() => {
+    if (showRule && lastFlipped?.rank === "J") {
+      setSubpanel("j");
+    }
+  }, [showRule, lastFlipped]);
+
   if (!showRule || !lastFlipped) return null;
   const rule = RULES[lastFlipped.rank];
+  const isJBlocking = lastFlipped.rank === "J";
 
   const close = () => {
     setSubpanel(null);
@@ -66,17 +74,7 @@ export function RuleModal() {
           </ul>
 
           {/* Per-card sub-panels */}
-          {lastFlipped.rank === "J" &&
-            (subpanel === "j" ? (
-              <JDicePrompt onClose={close} />
-            ) : (
-              <button
-                onClick={() => setSubpanel("j")}
-                className="w-full py-2.5 rounded-lg bg-[var(--color-red-gold)] text-[var(--color-ink)] font-brush"
-              >
-                加骰子
-              </button>
-            ))}
+          {lastFlipped.rank === "J" && <JDicePrompt onClose={close} />}
 
           {lastFlipped.rank === "K" &&
             (subpanel === "k" ? (
@@ -98,14 +96,20 @@ export function RuleModal() {
           )}
 
           {/* Actions */}
-          <div className="flex gap-2 pt-1">
-            <button
-              onClick={close}
-              className="flex-1 py-3 rounded-lg bg-[var(--color-ink)] text-[var(--color-ivory)] font-brush text-lg gold-edge"
-            >
-              {phase === "ended" ? "进入终局" : "完成 · 下一位"}
-            </button>
-          </div>
+          {isJBlocking ? (
+            <div className="text-center text-xs opacity-60 pt-1">
+              ⚠️ 必须加骰子才能继续
+            </div>
+          ) : (
+            <div className="flex gap-2 pt-1">
+              <button
+                onClick={close}
+                className="flex-1 py-3 rounded-lg bg-[var(--color-ink)] text-[var(--color-ivory)] font-brush text-lg gold-edge"
+              >
+                {phase === "ended" ? "进入终局" : "完成 · 下一位"}
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>

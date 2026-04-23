@@ -78,7 +78,7 @@ export function EndGameScreen() {
                     )}
                     title={keep[i] ? "保留" : "重摇"}
                   >
-                    <DieFace n={v} rolling={rolling} />
+                    <DieFace n={v} rolling={rolling} tone="ink" />
                     <div className="text-[10px] mt-1">
                       {keep[i] ? "保留" : "可重摇"}
                     </div>

@@ -99,11 +99,25 @@ export function JDicePrompt({ onClose }: { onClose: () => void }) {
   );
 }
 
-export function DieFace({ n, rolling = false }: { n: number; rolling?: boolean }) {
+export function DieFace({
+  n,
+  rolling = false,
+  tone = "gold",
+}: {
+  n: number;
+  rolling?: boolean;
+  tone?: "gold" | "ink" | "cinnabar";
+}) {
+  const color =
+    tone === "ink"
+      ? "var(--color-ink)"
+      : tone === "cinnabar"
+      ? "var(--color-cinnabar)"
+      : "var(--color-red-gold)";
   return (
     <span
       className={`text-6xl ${rolling ? "die-rolling" : ""}`}
-      style={{ color: "var(--color-red-gold)" }}
+      style={{ color, textShadow: tone === "ink" ? "0 1px 0 rgba(255,255,255,0.3)" : undefined }}
     >
       {DIE_FACES[n] || "⚀"}
     </span>
