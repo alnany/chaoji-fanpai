@@ -1,0 +1,18 @@
+{
+  "name": "超级翻牌",
+  "short_name": "翻牌",
+  "description": "港风复古翻牌饮酒游戏 · Chaoji Fanpai",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#1a1614",
+  "theme_color": "#1a1614",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
