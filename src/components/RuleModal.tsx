@@ -11,16 +11,16 @@ export function RuleModal() {
     useGame();
   const [subpanel, setSubpanel] = useState<null | "j" | "k">(null);
 
-  // J card is blocking: must add dice before proceeding.
+  // J / K cards are blocking: must complete their action (add dice / record) before proceeding.
   useEffect(() => {
-    if (showRule && lastFlipped?.rank === "J") {
-      setSubpanel("j");
-    }
+    if (showRule && lastFlipped?.rank === "J") setSubpanel("j");
+    else if (showRule && lastFlipped?.rank === "K") setSubpanel("k");
   }, [showRule, lastFlipped]);
 
   if (!showRule || !lastFlipped) return null;
   const rule = RULES[lastFlipped.rank];
   const isJBlocking = lastFlipped.rank === "J";
+  const isKBlocking = lastFlipped.rank === "K";
 
   const close = () => {
     setSubpanel(null);
@@ -76,17 +76,7 @@ export function RuleModal() {
           {/* Per-card sub-panels */}
           {lastFlipped.rank === "J" && <JDicePrompt onClose={close} />}
 
-          {lastFlipped.rank === "K" &&
-            (subpanel === "k" ? (
-              <KRecorder onClose={close} />
-            ) : (
-              <button
-                onClick={() => setSubpanel("k")}
-                className="w-full py-2.5 rounded-lg bg-[var(--color-cinnabar)] text-[var(--color-ivory)] font-brush gold-edge"
-              >
-                🎙 打开录音棚
-              </button>
-            ))}
+          {lastFlipped.rank === "K" && <KRecorder onClose={close} />}
 
           {lastFlipped.rank === "3" && (
             <div className="rounded-lg p-3 bg-[var(--color-jade)]/20 border border-[var(--color-jade)]/40 text-[var(--color-ink)] text-xs">
@@ -96,9 +86,11 @@ export function RuleModal() {
           )}
 
           {/* Actions */}
-          {isJBlocking ? (
+          {isJBlocking || isKBlocking ? (
             <div className="text-center text-xs opacity-60 pt-1">
-              ⚠️ 必须加骰子才能继续
+              {isJBlocking
+                ? "⚠️ 必须加骰子才能继续"
+                : "⚠️ 必须完成录音（回放并保存）才能继续"}
             </div>
           ) : (
             <div className="flex gap-2 pt-1">
