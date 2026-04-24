@@ -270,7 +270,7 @@ export function CardFront({
           {/* Center art — A, 7, 9, 10 use a single huge middle symbol for
               maximum legibility from across the table. 3 and 4 keep their
               classic sparse pip layout since a few pips read cleanly. */}
-          {["A", "4", "7", "9", "10"].includes(card.rank) && (
+          {["A", "3", "4", "7", "9", "10"].includes(card.rank) && (
             <AceCenter symbol={symbol} color={color} />
           )}
           {(card.rank === "J" || card.rank === "K") && (
@@ -280,9 +280,6 @@ export function CardFront({
               color={color}
               red={red}
             />
-          )}
-          {card.rank === "3" && (
-            <PipGrid rank={card.rank} symbol={symbol} color={color} />
           )}
         </>
       )}
