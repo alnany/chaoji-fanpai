@@ -65,7 +65,7 @@ export function EndGameScreen() {
       <div className="max-w-md w-full space-y-6">
         <div>
           <div className="font-brush text-5xl text-[var(--color-cinnabar)] drop-shadow-lg">
-            终局
+            游戏结束
           </div>
           <div className="font-display italic text-sm opacity-70 mt-1">
             The Fourth Ace Has Fallen

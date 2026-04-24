@@ -67,7 +67,7 @@ export function RuleModal() {
                 break;
               case "A": {
                 const left = 4 - aceCount;
-                p = { head: `第 ${aceCount} 张 A · 还有 ${left} 张`, sub: "第 4 张 A 开终局" };
+                p = { head: `第 ${aceCount} 张 A · 还有 ${left} 张`, sub: "第 4 张 A · 游戏结束" };
                 break;
               }
               case "JOKER":
@@ -107,7 +107,7 @@ export function RuleModal() {
                 onClick={close}
                 className="flex-1 py-3 rounded-lg bg-[var(--color-cinnabar)] text-[var(--color-ivory)] font-brush text-lg gold-edge"
               >
-                {phase === "ended" ? "进入终局" : "完成 · 下一位"}
+                {phase === "ended" ? "游戏结束" : "完成 · 下一位"}
               </button>
             )}
           </div>

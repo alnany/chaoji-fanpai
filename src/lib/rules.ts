@@ -80,7 +80,7 @@ export const RULES: Record<Rank, RuleInfo> = {
     ],
   },
   A: {
-    title: "终局之神",
+    title: "游戏结束",
     subtitle: "第 4 张 A 结束",
     color: "text-red-gold",
     body: [
