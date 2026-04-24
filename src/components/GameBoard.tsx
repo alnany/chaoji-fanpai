@@ -31,7 +31,6 @@ export function GameBoard() {
     if (!showRule && flipped) {
       setInstant(true);
       setFlipped(false);
-      // Re-enable transitions on the next paint so future flips animate.
       const r1 = requestAnimationFrame(() => {
         const r2 = requestAnimationFrame(() => setInstant(false));
         return () => cancelAnimationFrame(r2);
@@ -51,39 +50,16 @@ export function GameBoard() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      {/* Top bar */}
-      <header className="px-4 pt-5 pb-3 flex items-center justify-between">
-        <div>
-          <div className="font-brush text-2xl leading-none text-[var(--color-cinnabar)]">
-            超级翻牌
-          </div>
-          <div className="font-display italic text-[10px] opacity-60 mt-0.5">
-            Chaoji Fanpai · 港风酒局
-          </div>
-        </div>
-        <button
-          onClick={() => {
-            if (confirm("重开一局？")) resetGame();
-          }}
-          className="text-xs px-3 py-1 rounded-full border border-[var(--color-ivory)]/30 opacity-70 hover:opacity-100"
-        >
-          重开
-        </button>
-      </header>
-
-      {/* Progress */}
-      <div className="px-6 py-2">
-        <div className="flex items-center justify-between text-[10px] opacity-60 mb-1">
-          <span>剩 {deck.length} 张</span>
-          <span>{progress}% 已翻</span>
-        </div>
-        <div className="h-1 rounded-full bg-[var(--color-ivory)]/10 overflow-hidden">
-          <div
-            className="h-full bg-[var(--color-red-gold)] transition-all duration-500"
-            style={{ width: `${progress}%` }}
-          />
-        </div>
-      </div>
+      {/* Subtle top-left reset; logo & title removed for a clean deck-first look. */}
+      <button
+        onClick={() => {
+          if (confirm("重开一局？")) resetGame();
+        }}
+        className="fixed top-[max(env(safe-area-inset-top),0.75rem)] left-3 z-20 text-[11px] px-2.5 py-1 rounded-full bg-[var(--color-ink)]/60 backdrop-blur border border-[var(--color-ivory)]/20 opacity-70 hover:opacity-100"
+        aria-label="重开一局"
+      >
+        重开
+      </button>
 
       {/* Deck area — card stays pinned regardless of flip state (no layout shift). */}
       <div className="flex-1 flex items-center justify-center px-3 py-2 relative min-h-0">
@@ -91,9 +67,7 @@ export function GameBoard() {
           <div
             className="relative w-full"
             style={{
-              // Always reserve bottom room for the inline action bar so the
-              // card NEVER moves or resizes when flipping.
-              maxWidth: "min(100%, calc((100vh - 17rem) * 0.72))",
+              maxWidth: "min(100%, calc((100vh - 13rem) * 0.72))",
               aspectRatio: "0.72 / 1",
             }}
           >
@@ -132,9 +106,24 @@ export function GameBoard() {
         )}
       </div>
 
-      <div className="text-center pb-6 text-xs opacity-60">
-        {deck.length > 0 && !showRule && initialRollDone && "点牌堆翻下一张"}
-      </div>
+      {/* Bottom: progress bar + flip hint (hidden while the action bar is up) */}
+      {!showRule && (
+        <div className="px-6 pb-[max(env(safe-area-inset-bottom),1rem)] pt-1 space-y-1.5">
+          <div className="flex items-center justify-between text-[10px] opacity-60">
+            <span>剩 {deck.length} 张</span>
+            <span className="opacity-80">
+              {deck.length > 0 && initialRollDone ? "点牌堆翻下一张" : ""}
+            </span>
+            <span>{progress}% 已翻</span>
+          </div>
+          <div className="h-1 rounded-full bg-[var(--color-ivory)]/10 overflow-hidden">
+            <div
+              className="h-full bg-[var(--color-red-gold)] transition-all duration-500"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+        </div>
+      )}
 
       {!initialRollDone && phase === "playing" && <InitialRoll />}
       <RuleModal />
