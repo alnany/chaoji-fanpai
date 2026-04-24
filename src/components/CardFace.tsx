@@ -96,19 +96,25 @@ function PipGrid({
 }) {
   const cells = PIP_GRIDS[rank] || [];
   const maxRow = 6;
+  // Dense ranks (7/9/10) squeeze pips into a narrow middle band so the top
+  // and bottom rows never reach the supersized corner numbers. Sparse ranks
+  // (3/4) keep a tall grid so their few pips spread across the card.
+  const dense = rank === "9" || rank === "10" || rank === "7";
+  const gridHeight = dense ? "34%" : "62%";
+  const gridWidth = dense ? "50%" : "52%";
+  const pipFont = dense
+    ? "clamp(20px, 4.6vh, 38px)"
+    : "clamp(40px, 9.5vh, 78px)";
   return (
     <div className="absolute inset-0 flex items-center justify-center">
-      <div className="relative w-[52%] h-[62%]">
+      <div
+        className="relative"
+        style={{ width: gridWidth, height: gridHeight }}
+      >
         {cells.map(([r, c], i) => {
           const top = (r / maxRow) * 100;
           const left = c === 0 ? 0 : c === 1 ? 50 : 100;
           const flipped = r > maxRow / 2;
-          // Dense ranks (7/9/10) need slightly smaller pips to avoid overlap;
-          // sparse ranks (3/4) get huge pips that fill the card.
-          const dense = rank === "9" || rank === "10" || rank === "7";
-          const pipFont = dense
-            ? "clamp(26px, 6vh, 50px)"
-            : "clamp(40px, 9.5vh, 78px)";
           return (
             <div
               key={i}
