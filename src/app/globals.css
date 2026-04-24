@@ -67,19 +67,26 @@ html, body {
   }
   .die-rolling { animation: die-roll 0.6s ease-in-out; }
 
-  /* Realistic die 3D tumble — used while dice are rolling */
+  /* Die rattle — pure 2D shake, no 3D rotation or scaling.
+     Jitter translation + tiny tilt to feel like the die bouncing
+     against a surface, without the unphysical "deforming" look. */
   @keyframes die-tumble {
-    0%   { transform: translateY(0)     rotateX(0deg)    rotateY(0deg)    rotateZ(0deg)   scale(1); }
-    15%  { transform: translateY(-14px) rotateX(220deg)  rotateY(-140deg) rotateZ(-25deg) scale(1.06); }
-    35%  { transform: translateY(-6px)  rotateX(520deg)  rotateY(260deg)  rotateZ(40deg)  scale(1.02); }
-    55%  { transform: translateY(-18px) rotateX(760deg)  rotateY(-360deg) rotateZ(-60deg) scale(1.04); }
-    75%  { transform: translateY(-4px)  rotateX(1020deg) rotateY(480deg)  rotateZ(20deg)  scale(1.01); }
-    100% { transform: translateY(0)     rotateX(1440deg) rotateY(720deg)  rotateZ(0deg)   scale(1); }
+    0%,100% { transform: translate(0, 0)      rotate(0deg); }
+    10%     { transform: translate(-3px, 1px) rotate(-6deg); }
+    20%     { transform: translate(4px, -1px) rotate(7deg); }
+    30%     { transform: translate(-2px, 2px) rotate(-4deg); }
+    40%     { transform: translate(3px, 0)    rotate(5deg); }
+    50%     { transform: translate(-4px, -2px) rotate(-7deg); }
+    60%     { transform: translate(2px, 2px)  rotate(4deg); }
+    70%     { transform: translate(-3px, 0)   rotate(-5deg); }
+    80%     { transform: translate(3px, -1px) rotate(6deg); }
+    90%     { transform: translate(-2px, 1px) rotate(-3deg); }
   }
   .die-tumble {
-    animation: die-tumble 1.2s cubic-bezier(0.28, 0.85, 0.4, 1) infinite;
-    transform-style: preserve-3d;
-    filter: drop-shadow(0 6px 6px rgba(0,0,0,0.25));
+    animation: die-tumble 0.22s steps(6, end) infinite;
+    filter: drop-shadow(0 5px 5px rgba(0,0,0,0.28));
+    transform-origin: center 70%;
+    will-change: transform;
   }
 
   /* Landing bounce after the die settles on its final face */
