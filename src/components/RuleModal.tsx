@@ -12,7 +12,7 @@ import { sfx } from "@/lib/sfx";
  * optional rule body drawer.
  */
 export function RuleModal() {
-  const { showRule, lastFlipped, closeRule, phase, nineCount } = useGame();
+  const { showRule, lastFlipped, closeRule, phase, nineCount, aceCount } = useGame();
   const [showBody, setShowBody] = useState(false);
 
   useEffect(() => {
@@ -40,16 +40,54 @@ export function RuleModal() {
               <JDicePrompt onClose={close} />
             </div>
           )}
-          {lastFlipped.rank === "9" && (
-            <div className="kraft rounded-xl gold-edge px-4 py-3 text-center">
-              <div className="font-brush text-3xl text-[var(--color-cinnabar)] leading-tight">
-                指定一个人喝 {nineCount} 杯
+          {(() => {
+            // Direct action prompt shown above the bottom buttons.
+            // J is skipped because its JDicePrompt already IS a direct action.
+            const rank = lastFlipped.rank;
+            type Prompt = { head: string; sub?: string };
+            let p: Prompt | null = null;
+            switch (rank) {
+              case "3":
+                p = { head: "大喊「我脑子有病！」", sub: "谁跟你说话 · 罚 1 杯" };
+                break;
+              case "4":
+                p = { head: "咬住纸巾传下家", sub: "手碰 1 杯 · 掉地交杯酒" };
+                break;
+              case "7":
+                p = { head: "真心话 or 大冒险", sub: "先举手的出题 · 拒绝罚 10 杯" };
+                break;
+              case "9":
+                p = { head: `指定一个人喝 ${nineCount} 杯`, sub: "不能指自己 · 不能拆" };
+                break;
+              case "10":
+                p = { head: "方向反转", sub: "下一个换上家" };
+                break;
+              case "K":
+                p = { head: "喝 1 杯", sub: "口头定义下一张 K 的喝法" };
+                break;
+              case "A":
+                p = { head: `第 ${aceCount} 张 A · 无事发生`, sub: "喝一口运气酒就行" };
+                break;
+              case "JOKER":
+                p = { head: "找一个人猜拳，输的认主人", sub: "主人罚酒可找狗代喝" };
+                break;
+              default:
+                p = null;
+            }
+            if (!p) return null;
+            return (
+              <div className="kraft rounded-xl gold-edge px-4 py-3 text-center">
+                <div className="font-brush text-3xl text-[var(--color-cinnabar)] leading-tight">
+                  {p.head}
+                </div>
+                {p.sub && (
+                  <div className="mt-1 text-[11px] text-[var(--color-ink)]/70">
+                    {p.sub}
+                  </div>
+                )}
               </div>
-              <div className="mt-1 text-[11px] text-[var(--color-ink)]/70">
-                不能指自己 · 不能拆
-              </div>
-            </div>
-          )}
+            );
+          })()}
           <div className="flex gap-2 items-stretch">
             <button
               onClick={() => { sfx.softTap(); setShowBody((v) => !v); }}
