@@ -18,16 +18,27 @@ export function GameBoard() {
     phase,
   } = useGame();
   const [flipped, setFlipped] = useState(false);
+  const [instant, setInstant] = useState(false);
 
-  // When a card flips, show the front briefly; when modal closes we reset.
+  // When a card flips, animate forward. When modal closes, snap back instantly
+  // (no reverse animation) so the deck looks static until user taps again.
   useEffect(() => {
-    if (showRule && lastFlipped) setFlipped(true);
-    if (!showRule) {
-      // reset after a beat so card returns to back
-      const t = setTimeout(() => setFlipped(false), 300);
-      return () => clearTimeout(t);
+    if (showRule && lastFlipped) {
+      setInstant(false);
+      setFlipped(true);
+      return;
     }
-  }, [showRule, lastFlipped]);
+    if (!showRule && flipped) {
+      setInstant(true);
+      setFlipped(false);
+      // Re-enable transitions on the next paint so future flips animate.
+      const r1 = requestAnimationFrame(() => {
+        const r2 = requestAnimationFrame(() => setInstant(false));
+        return () => cancelAnimationFrame(r2);
+      });
+      return () => cancelAnimationFrame(r1);
+    }
+  }, [showRule, lastFlipped, flipped]);
 
   const handleFlip = () => {
     if (!initialRollDone) return;
@@ -101,6 +112,7 @@ export function GameBoard() {
             <FlipCard
               card={lastFlipped}
               flipped={flipped}
+              instant={instant}
               className="w-full h-full float-idle"
               onClick={handleFlip}
             />

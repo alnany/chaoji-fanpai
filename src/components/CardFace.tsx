@@ -278,11 +278,13 @@ export function CardFront({
 export function FlipCard({
   card,
   flipped,
+  instant = false,
   className = "",
   onClick,
 }: {
   card: Card | null;
   flipped: boolean;
+  instant?: boolean;
   className?: string;
   onClick?: () => void;
 }) {
@@ -297,7 +299,8 @@ export function FlipCard({
     >
       <div
         className={clsx(
-          "relative w-full h-full preserve-3d transition-transform duration-700 ease-out",
+          "relative w-full h-full preserve-3d ease-out",
+          instant ? "transition-none" : "transition-transform duration-700",
           flipped && "rotate-y-180"
         )}
       >
