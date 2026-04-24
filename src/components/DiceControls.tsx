@@ -1,8 +1,7 @@
 "use client";
 import { useGame } from "@/lib/store";
 import { useState } from "react";
-
-const DIE_FACES = ["", "⚀", "⚁", "⚂", "⚃", "⚄", "⚅"];
+import { Die } from "./Die";
 
 export function InitialRoll() {
   const { initialRollDone, setInitialDice, dicePool } = useGame();
@@ -14,18 +13,13 @@ export function InitialRoll() {
   const roll = () => {
     if (rolling) return;
     setRolling(true);
-    let ticks = 0;
-    const interval = setInterval(() => {
-      setFace(Math.floor(Math.random() * 6) + 1);
-      ticks++;
-      if (ticks > 10) {
-        clearInterval(interval);
-        const result = Math.floor(Math.random() * 6) + 1;
-        setFace(result);
-        setRolling(false);
-        setTimeout(() => setInitialDice(result), 800);
-      }
-    }, 80);
+    // Let the 3D tumble animation play for ~1.3s, then lock the final face.
+    setTimeout(() => {
+      const result = 1 + Math.floor(Math.random() * 6);
+      setFace(result);
+      setRolling(false);
+      setTimeout(() => setInitialDice(result), 800);
+    }, 1300);
   };
 
   return (
@@ -39,20 +33,18 @@ export function InitialRoll() {
             一人摇一颗，点数即初始骰池数量
           </div>
         </div>
-        <div className="flex justify-center">
-          <div
-            className={`text-9xl ${rolling ? "die-rolling" : ""}`}
-            style={{ color: "var(--color-red-gold)" }}
-          >
-            {face ? DIE_FACES[face] : "⚅"}
-          </div>
+        <div
+          className="flex justify-center items-end"
+          style={{ perspective: 800, height: 200 }}
+        >
+          <Die value={face ?? 6} rolling={rolling} size={160} />
         </div>
         <button
           onClick={roll}
           disabled={rolling}
           className="w-full py-3 rounded-xl font-brush text-xl bg-[var(--color-cinnabar)] text-[var(--color-ivory)] gold-edge disabled:opacity-60"
         >
-          {rolling ? "摇..." : face ? `确认 ${face} 颗` : "摇"}
+          {rolling ? "摇中..." : face ? `确认 ${face} 颗` : "摇"}
         </button>
         <div className="text-xs opacity-50">当前骰池：{dicePool}</div>
       </div>
@@ -99,27 +91,16 @@ export function JDicePrompt({ onClose }: { onClose: () => void }) {
   );
 }
 
+/* Legacy thin wrapper kept for any imports — renders the new realistic Die. */
 export function DieFace({
   n,
   rolling = false,
-  tone = "gold",
+  size = 64,
 }: {
   n: number;
   rolling?: boolean;
   tone?: "gold" | "ink" | "cinnabar";
+  size?: number;
 }) {
-  const color =
-    tone === "ink"
-      ? "var(--color-ink)"
-      : tone === "cinnabar"
-      ? "var(--color-cinnabar)"
-      : "var(--color-red-gold)";
-  return (
-    <span
-      className={`text-6xl ${rolling ? "die-rolling" : ""}`}
-      style={{ color, textShadow: tone === "ink" ? "0 1px 0 rgba(255,255,255,0.3)" : undefined }}
-    >
-      {DIE_FACES[n] || "⚀"}
-    </span>
-  );
+  return <Die value={n} rolling={rolling} size={size} />;
 }

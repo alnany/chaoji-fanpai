@@ -1,36 +1,46 @@
 "use client";
 import { useGame } from "@/lib/store";
-import { DieFace } from "./DiceControls";
+import { Die } from "./Die";
 import { useState } from "react";
 import clsx from "clsx";
+
+const ROLL_MS = 1300;
 
 export function EndGameScreen() {
   const { dicePool, finalRolls, rollFinal, reroll, rerollsLeft, resetGame } =
     useGame();
   const [keep, setKeep] = useState<boolean[]>([]);
   const [rolling, setRolling] = useState(false);
+  // Per-die rolling flags so non-kept dice tumble and kept dice sit still.
+  const [rollMask, setRollMask] = useState<boolean[]>([]);
 
   const hasRolled = finalRolls.length > 0;
   const total = finalRolls.reduce((a, b) => a + b, 0);
 
   const doRoll = () => {
     setRolling(true);
+    setRollMask(new Array(dicePool).fill(true));
     setTimeout(() => {
       rollFinal();
       setKeep(new Array(dicePool).fill(false));
       setRolling(false);
-    }, 600);
+      setRollMask(new Array(dicePool).fill(false));
+    }, ROLL_MS);
   };
 
   const doReroll = () => {
+    // Only the non-kept dice tumble.
     setRolling(true);
+    setRollMask(keep.map((k) => !k));
     setTimeout(() => {
       reroll(keep);
       setRolling(false);
-    }, 600);
+      setRollMask(new Array(finalRolls.length).fill(false));
+    }, ROLL_MS);
   };
 
   const toggleKeep = (i: number) => {
+    if (rolling) return;
     setKeep((k) => {
       const n = [...k];
       n[i] = !n[i];
@@ -56,16 +66,32 @@ export function EndGameScreen() {
           </div>
 
           {!hasRolled ? (
-            <button
-              onClick={doRoll}
-              disabled={rolling}
-              className="w-full py-4 rounded-xl bg-[var(--color-cinnabar)] text-[var(--color-ivory)] font-brush text-2xl gold-edge disabled:opacity-60"
-            >
-              {rolling ? "摇..." : "开摇"}
-            </button>
+            <>
+              {/* Preview row of rolling dice while摇 is pressed */}
+              {rolling && (
+                <div
+                  className="flex flex-wrap gap-3 justify-center py-3"
+                  style={{ perspective: 900 }}
+                >
+                  {Array.from({ length: dicePool }).map((_, i) => (
+                    <Die key={i} value={1} rolling size={72} />
+                  ))}
+                </div>
+              )}
+              <button
+                onClick={doRoll}
+                disabled={rolling}
+                className="w-full py-4 rounded-xl bg-[var(--color-cinnabar)] text-[var(--color-ivory)] font-brush text-2xl gold-edge disabled:opacity-60"
+              >
+                {rolling ? "摇中..." : "开摇"}
+              </button>
+            </>
           ) : (
             <>
-              <div className="flex flex-wrap gap-3 justify-center py-2">
+              <div
+                className="flex flex-wrap gap-3 justify-center py-2"
+                style={{ perspective: 900 }}
+              >
                 {finalRolls.map((v, i) => (
                   <button
                     key={i}
@@ -77,9 +103,10 @@ export function EndGameScreen() {
                         : "border-[var(--color-red-gold)]/50 hover:border-[var(--color-red-gold)]"
                     )}
                     title={keep[i] ? "保留" : "重摇"}
+                    disabled={rolling}
                   >
-                    <DieFace n={v} rolling={rolling} tone="ink" />
-                    <div className="text-[10px] mt-1">
+                    <Die value={v} rolling={rollMask[i] ?? false} size={64} />
+                    <div className="text-[10px] mt-1 text-[var(--color-ink)]">
                       {keep[i] ? "保留" : "可重摇"}
                     </div>
                   </button>
@@ -96,7 +123,9 @@ export function EndGameScreen() {
                   disabled={rerollsLeft <= 0 || rolling}
                   className="flex-1 py-2.5 rounded-lg bg-[var(--color-ink)] text-[var(--color-ivory)] text-sm disabled:opacity-40"
                 >
-                  重摇 · 剩 {rerollsLeft} 次 · 代价：亲一口 💋
+                  {rolling
+                    ? "摇中..."
+                    : `重摇 · 剩 ${rerollsLeft} 次 · 代价：亲一口 💋`}
                 </button>
               </div>
             </>
