@@ -35,10 +35,10 @@ export function StartScreen() {
           <div className="font-brush text-xl text-[var(--color-cinnabar)]">
             玩法
           </div>
-          <div>·  一副精简牌共 34 张</div>
-          <div>·  开局摇一颗骰子定初始骰池</div>
-          <div>·  轮流翻牌，照牌面规则执行</div>
-          <div>·  第 4 张 A 抽出，游戏结束摇总骰</div>
+          <div>·  34 张牌，围桌轮流翻</div>
+          <div>·  开局摇一颗骰子 = 初始骰池</div>
+          <div>·  翻到哪张，照牌面规则执行</div>
+          <div>·  翻到第 4 张 A，摇骰子罚酒</div>
         </div>
 
         <button
