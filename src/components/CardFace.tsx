@@ -240,27 +240,6 @@ function JokerArt() {
 
       {/* corner "Joker" nameplate labels — spell the full word so the card
           can never be confused with the J knight card */}
-      <div
-        className="absolute top-[8.5%] left-[11%] font-display italic font-bold leading-none"
-        style={{
-          color: gold,
-          fontSize: "clamp(13px, 2.8vh, 20px)",
-          letterSpacing: "0.08em",
-        }}
-      >
-        Joker
-      </div>
-      <div
-        className="absolute bottom-[8.5%] right-[11%] rotate-180 font-display italic font-bold leading-none"
-        style={{
-          color: gold,
-          fontSize: "clamp(13px, 2.8vh, 20px)",
-          letterSpacing: "0.08em",
-        }}
-      >
-        Joker
-      </div>
-
       {/* corner flourishes */}
       {[
         "top-[5%] right-[8%]",
