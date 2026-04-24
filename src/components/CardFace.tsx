@@ -98,16 +98,21 @@ function PipGrid({
   const maxRow = 6;
   return (
     <div className="absolute inset-0 flex items-center justify-center">
-      <div className="relative w-[58%] h-[78%]">
+      <div className="relative w-[72%] h-[84%]">
         {cells.map(([r, c], i) => {
           const top = (r / maxRow) * 100;
           const left = c === 0 ? 0 : c === 1 ? 50 : 100;
-          // flip bottom half upside-down like real cards
           const flipped = r > maxRow / 2;
+          // Dense ranks (7/9/10) need slightly smaller pips to avoid overlap;
+          // sparse ranks (3/4) get huge pips that fill the card.
+          const dense = rank === "9" || rank === "10" || rank === "7";
+          const pipFont = dense
+            ? "clamp(34px, 8.5vh, 68px)"
+            : "clamp(52px, 13vh, 104px)";
           return (
             <div
               key={i}
-              className="absolute leading-none"
+              className="absolute leading-none font-bold"
               style={{
                 top: `${top}%`,
                 left: `${left}%`,
@@ -115,7 +120,7 @@ function PipGrid({
                   flipped ? "rotate(180deg)" : ""
                 }`,
                 color,
-                fontSize: "clamp(18px, 5.5vh, 36px)",
+                fontSize: pipFont,
               }}
             >
               {symbol}
@@ -142,7 +147,7 @@ function FaceArt({
   const glyph = rank === "K" ? "♚" : "♞"; // king / knight as stand-in for J
   const cn = rank === "K" ? "国王" : "侍卫";
   return (
-    <div className="absolute inset-0 flex items-center justify-center px-[18%] py-[12%]">
+    <div className="absolute inset-0 flex items-center justify-center px-[8%] py-[8%]">
       <div
         className={clsx(
           "relative w-full h-full rounded-md overflow-hidden flex items-center justify-center",
@@ -163,9 +168,9 @@ function FaceArt({
           className="relative flex flex-col items-center gap-1 leading-none"
           style={{ color }}
         >
-          <div style={{ fontSize: "clamp(44px, 16vh, 96px)" }}>{glyph}</div>
-          <div className="font-brush text-xl opacity-80">{cn}</div>
-          <div style={{ fontSize: "clamp(18px, 4vh, 28px)" }}>{symbol}</div>
+          <div style={{ fontSize: "clamp(72px, 24vh, 160px)" }}>{glyph}</div>
+          <div className="font-brush text-2xl opacity-80">{cn}</div>
+          <div style={{ fontSize: "clamp(36px, 8vh, 60px)" }}>{symbol}</div>
         </div>
       </div>
     </div>
@@ -181,7 +186,7 @@ function AceCenter({ symbol, color }: { symbol: string; color: string }) {
     >
       <div
         className="drop-shadow"
-        style={{ fontSize: "clamp(80px, 26vh, 180px)" }}
+        style={{ fontSize: "clamp(120px, 36vh, 260px)" }}
       >
         {symbol}
       </div>
@@ -217,12 +222,12 @@ export function CardFront({
             className="font-brush leading-none"
             style={{
               color: "var(--color-cinnabar)",
-              fontSize: "clamp(40px, 12vh, 72px)",
+              fontSize: "clamp(56px, 16vh, 110px)",
             }}
           >
             小丑
           </div>
-          <div style={{ fontSize: "clamp(48px, 16vh, 96px)" }}>🃏</div>
+          <div style={{ fontSize: "clamp(80px, 26vh, 180px)" }}>🃏</div>
           <div
             className="font-display italic opacity-70"
             style={{ color, fontSize: "clamp(12px, 2vh, 16px)" }}
@@ -237,9 +242,9 @@ export function CardFront({
             className="absolute top-2 left-2.5 text-left leading-[0.9] font-display font-bold"
             style={{ color }}
           >
-            <div style={{ fontSize: "clamp(24px, 6.5vh, 44px)" }}>{label}</div>
+            <div style={{ fontSize: "clamp(40px, 9.5vh, 76px)" }}>{label}</div>
             <div
-              style={{ fontSize: "clamp(18px, 5vh, 32px)", marginTop: 2 }}
+              style={{ fontSize: "clamp(30px, 7.5vh, 56px)", marginTop: 2 }}
             >
               {symbol}
             </div>
@@ -248,9 +253,9 @@ export function CardFront({
             className="absolute bottom-2 right-2.5 text-right leading-[0.9] font-display font-bold rotate-180"
             style={{ color }}
           >
-            <div style={{ fontSize: "clamp(24px, 6.5vh, 44px)" }}>{label}</div>
+            <div style={{ fontSize: "clamp(40px, 9.5vh, 76px)" }}>{label}</div>
             <div
-              style={{ fontSize: "clamp(18px, 5vh, 32px)", marginTop: 2 }}
+              style={{ fontSize: "clamp(30px, 7.5vh, 56px)", marginTop: 2 }}
             >
               {symbol}
             </div>
