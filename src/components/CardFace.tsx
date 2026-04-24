@@ -151,7 +151,6 @@ function FaceArt({
   red: boolean;
 }) {
   const glyph = rank === "K" ? "♚" : "♞"; // king / knight as stand-in for J
-  const cn = rank === "K" ? "国王" : "侍卫";
   return (
     <div className="absolute inset-0 flex items-center justify-center px-[14%] py-[16%]">
       <div
@@ -171,12 +170,11 @@ function FaceArt({
           }}
         />
         <div
-          className="relative flex flex-col items-center gap-1 leading-none"
+          className="relative flex flex-col items-center gap-3 leading-none"
           style={{ color }}
         >
-          <div style={{ fontSize: "clamp(56px, 18vh, 120px)" }}>{glyph}</div>
-          <div className="font-brush text-2xl opacity-80">{cn}</div>
-          <div style={{ fontSize: "clamp(36px, 8vh, 60px)" }}>{symbol}</div>
+          <div style={{ fontSize: "clamp(72px, 22vh, 160px)" }}>{glyph}</div>
+          <div style={{ fontSize: "clamp(40px, 9vh, 70px)" }}>{symbol}</div>
         </div>
       </div>
     </div>
@@ -195,6 +193,135 @@ function AceCenter({ symbol, color }: { symbol: string; color: string }) {
         style={{ fontSize: "clamp(90px, 28vh, 200px)" }}
       >
         {symbol}
+      </div>
+    </div>
+  );
+}
+
+/** Ornate joker face — decorative gold filigree, split-color backdrop,
+ *  sparkles, crown, bells. No text labels. */
+function JokerArt() {
+  const gold = "var(--color-red-gold)";
+  const red = "var(--color-cinnabar)";
+  const ink = "var(--color-ink)";
+  return (
+    <div className="absolute inset-0 overflow-hidden">
+      {/* dramatic split backdrop (red top-left / ink bottom-right) */}
+      <div
+        className="absolute inset-0"
+        style={{
+          background: `linear-gradient(135deg, ${red}22 0%, ${red}11 48%, ${ink}11 52%, ${ink}22 100%)`,
+        }}
+      />
+      {/* radial glow around center */}
+      <div
+        className="absolute inset-0"
+        style={{
+          background: `radial-gradient(ellipse at center, ${gold}22 0%, transparent 60%)`,
+        }}
+      />
+      {/* inner filigree frame */}
+      <div
+        className="absolute inset-[6%] rounded-lg pointer-events-none"
+        style={{
+          border: `1.5px solid ${gold}`,
+          boxShadow: `inset 0 0 0 3px transparent, inset 0 0 0 4px ${gold}55`,
+        }}
+      />
+      <div
+        className="absolute inset-[8%] rounded-md pointer-events-none"
+        style={{ border: `0.5px solid ${gold}99` }}
+      />
+
+      {/* corner filigree ornaments */}
+      {[
+        "top-[6%] left-[6%]",
+        "top-[6%] right-[6%] rotate-90",
+        "bottom-[6%] right-[6%] rotate-180",
+        "bottom-[6%] left-[6%] -rotate-90",
+      ].map((pos, i) => (
+        <div
+          key={i}
+          className={`absolute ${pos} font-display`}
+          style={{ color: gold, fontSize: "clamp(18px, 4vh, 32px)" }}
+        >
+          ❧
+        </div>
+      ))}
+
+      {/* sparkles around the face */}
+      <div
+        className="absolute top-[20%] left-[18%] rotate-[-15deg]"
+        style={{ color: gold, fontSize: "clamp(14px, 3vh, 24px)" }}
+      >
+        ✦
+      </div>
+      <div
+        className="absolute top-[20%] right-[18%] rotate-[15deg]"
+        style={{ color: gold, fontSize: "clamp(14px, 3vh, 24px)" }}
+      >
+        ✦
+      </div>
+      <div
+        className="absolute bottom-[22%] left-[16%]"
+        style={{ color: gold, fontSize: "clamp(12px, 2.4vh, 18px)" }}
+      >
+        ✧
+      </div>
+      <div
+        className="absolute bottom-[22%] right-[16%]"
+        style={{ color: gold, fontSize: "clamp(12px, 2.4vh, 18px)" }}
+      >
+        ✧
+      </div>
+
+      {/* crown on top of joker face */}
+      <div
+        className="absolute left-1/2 -translate-x-1/2"
+        style={{
+          top: "14%",
+          color: gold,
+          fontSize: "clamp(36px, 10vh, 76px)",
+          filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.25))",
+        }}
+      >
+        ♛
+      </div>
+
+      {/* main joker glyph */}
+      <div
+        className="absolute inset-0 flex items-center justify-center"
+        style={{
+          fontSize: "clamp(110px, 34vh, 240px)",
+          filter:
+            "drop-shadow(0 4px 10px rgba(0,0,0,0.25)) drop-shadow(0 0 2px rgba(0,0,0,0.2))",
+        }}
+      >
+        🃏
+      </div>
+
+      {/* bells flanking the feet */}
+      <div
+        className="absolute left-[22%]"
+        style={{
+          bottom: "12%",
+          color: gold,
+          fontSize: "clamp(22px, 5vh, 40px)",
+          transform: "rotate(-20deg)",
+        }}
+      >
+        🔔
+      </div>
+      <div
+        className="absolute right-[22%]"
+        style={{
+          bottom: "12%",
+          color: gold,
+          fontSize: "clamp(22px, 5vh, 40px)",
+          transform: "rotate(20deg)",
+        }}
+      >
+        🔔
       </div>
     </div>
   );
@@ -223,24 +350,7 @@ export function CardFront({
       <div className="absolute inset-1.5 rounded-lg border border-[var(--color-red-gold)]/50 pointer-events-none" />
 
       {isJoker ? (
-        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-4">
-          <div
-            className="font-brush leading-none"
-            style={{
-              color: "var(--color-cinnabar)",
-              fontSize: "clamp(56px, 16vh, 110px)",
-            }}
-          >
-            小丑
-          </div>
-          <div style={{ fontSize: "clamp(80px, 26vh, 180px)" }}>🃏</div>
-          <div
-            className="font-display italic opacity-70"
-            style={{ color, fontSize: "clamp(12px, 2vh, 16px)" }}
-          >
-            JOKER
-          </div>
-        </div>
+        <JokerArt />
       ) : (
         <>
           {/* Corner rank + suit — BIG */}
