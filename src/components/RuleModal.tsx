@@ -3,12 +3,10 @@ import { useGame } from "@/lib/store";
 import { RULES } from "@/lib/rules";
 import { CardFront } from "./CardFace";
 import { JDicePrompt } from "./DiceControls";
-import { KRecorder } from "./KRecorder";
 import { useEffect, useRef, useState } from "react";
 
 export function RuleModal() {
   const { showRule, lastFlipped, discard, closeRule, phase } = useGame();
-  const [subpanel, setSubpanel] = useState<null | "j" | "k">(null);
   const [showBody, setShowBody] = useState(false);
   const scrollerRef = useRef<HTMLDivElement | null>(null);
   const [viewIndex, setViewIndex] = useState(0); // index into discard; last = current
@@ -23,9 +21,6 @@ export function RuleModal() {
   useEffect(() => {
     if (!showRule) return;
     setShowBody(false);
-    if (lastFlipped?.rank === "J") setSubpanel("j");
-    else if (lastFlipped?.rank === "K") setSubpanel("k");
-    else setSubpanel(null);
     // jump to current
     setViewIndex(currentIndex);
     requestAnimationFrame(() => {
@@ -47,11 +42,9 @@ export function RuleModal() {
 
   const rule = RULES[viewingCard.rank];
   const isJBlocking = isCurrent && lastFlipped.rank === "J";
-  const isKBlocking = isCurrent && lastFlipped.rank === "K";
-  const hasActionPanel = isJBlocking || isKBlocking;
+  const hasActionPanel = isJBlocking;
 
   const close = () => {
-    setSubpanel(null);
     setShowBody(false);
     closeRule();
   };
@@ -125,7 +118,6 @@ export function RuleModal() {
         <div className="shrink-0 px-3 pb-2">
           <div className="max-w-md mx-auto kraft rounded-xl gold-edge p-3">
             {isJBlocking && <JDicePrompt onClose={close} />}
-            {isKBlocking && <KRecorder onClose={close} />}
           </div>
         </div>
       )}
@@ -149,9 +141,7 @@ export function RuleModal() {
             </button>
           ) : hasActionPanel ? (
             <div className="flex-1 flex items-center justify-center px-3 py-3 rounded-lg border border-[var(--color-cinnabar)]/40 text-[var(--color-cinnabar)] text-xs text-center">
-              {isJBlocking
-                ? "⚠️ 必须加骰子才能继续"
-                : "⚠️ 必须完成录音才能继续"}
+              ⚠️ 必须加骰子才能继续
             </div>
           ) : (
             <button
