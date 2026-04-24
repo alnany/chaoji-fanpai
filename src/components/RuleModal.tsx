@@ -12,7 +12,7 @@ import { sfx } from "@/lib/sfx";
  * optional rule body drawer.
  */
 export function RuleModal() {
-  const { showRule, lastFlipped, closeRule, phase } = useGame();
+  const { showRule, lastFlipped, closeRule, phase, nineCount } = useGame();
   const [showBody, setShowBody] = useState(false);
 
   useEffect(() => {
@@ -38,6 +38,16 @@ export function RuleModal() {
           {isJBlocking && (
             <div className="kraft rounded-xl gold-edge p-3">
               <JDicePrompt onClose={close} />
+            </div>
+          )}
+          {lastFlipped.rank === "9" && (
+            <div className="kraft rounded-xl gold-edge px-4 py-3 text-center">
+              <div className="font-brush text-3xl text-[var(--color-cinnabar)] leading-tight">
+                指定一个人喝 {nineCount} 杯
+              </div>
+              <div className="mt-1 text-[11px] text-[var(--color-ink)]/70">
+                不能指自己 · 不能拆
+              </div>
             </div>
           )}
           <div className="flex gap-2 items-stretch">
