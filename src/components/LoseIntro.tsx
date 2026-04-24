@@ -53,13 +53,6 @@ export function LoseIntro({
           你输了
         </div>
         <div
-          className="font-display italic tracking-[0.35em] text-[var(--color-red-gold)] uppercase lose-subtitle"
-          style={{ fontSize: "clamp(12px, 3.5vw, 18px)" }}
-        >
-          The Fourth Ace Has Fallen
-        </div>
-
-        <div
           className="kraft gold-edge rounded-xl px-5 py-3 mx-auto max-w-xs lose-instruction"
           style={{ opacity: phase === "slam" ? 0 : 1, transition: "opacity 500ms ease 500ms" }}
         >
