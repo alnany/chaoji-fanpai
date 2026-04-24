@@ -7,8 +7,7 @@ import { KRecorder } from "./KRecorder";
 import { useEffect, useState } from "react";
 
 export function RuleModal() {
-  const { showRule, lastFlipped, nineCount, aceCount, closeRule, phase } =
-    useGame();
+  const { showRule, lastFlipped, closeRule, phase } = useGame();
   const [subpanel, setSubpanel] = useState<null | "j" | "k">(null);
   const [showBody, setShowBody] = useState(false);
 
@@ -33,32 +32,14 @@ export function RuleModal() {
     closeRule();
   };
 
-  // Contextual hints
-  let context: string | null = null;
-  if (lastFlipped.rank === "9") {
-    context = `第 ${nineCount} 张 9 · 指定一人喝 ${nineCount} 杯`;
-  } else if (lastFlipped.rank === "A") {
-    if (aceCount < 4) {
-      context = `第 ${aceCount} 张 A · 无事发生，继续翻`;
-    } else {
-      context = "第 4 张 A · 游戏结束 💀";
-    }
-  }
-
   return (
-    <div className="fixed inset-0 z-40 bg-[var(--color-ink)]/95 backdrop-blur-sm flex flex-col">
-      {/* Top contextual badge */}
-      <div className="shrink-0 pt-[max(env(safe-area-inset-top),1rem)] px-4 flex justify-center">
-        {context && (
-          <div className="px-3 py-1.5 rounded-full bg-[var(--color-cinnabar)] text-[var(--color-ivory)] text-xs font-display shadow-lg">
-            {context}
-          </div>
-        )}
-      </div>
-
-      {/* Big card — takes most of the screen */}
+    <div className="fixed inset-0 z-40 bg-[var(--color-ink)]/95 backdrop-blur-sm flex flex-col pt-[max(env(safe-area-inset-top),3.5rem)]">
+      {/* Card — same size as the board card */}
       <div className="flex-1 min-h-0 flex items-center justify-center px-6 py-3">
-        <div className="h-full w-full max-w-[min(100%,calc((100vh-18rem)*0.72))] flex items-center justify-center">
+        <div
+          className="rounded-xl"
+          style={{ width: 220, height: 310 }}
+        >
           <CardFront card={lastFlipped} className="w-full h-full" />
         </div>
       </div>
@@ -108,27 +89,20 @@ export function RuleModal() {
         </div>
       </div>
 
-      {/* Rule body bottom sheet (opt-in) */}
+      {/* Rule body bottom sheet — click anywhere to dismiss */}
       {showBody && (
         <div
-          className="absolute inset-0 z-10 bg-[var(--color-ink)]/70 backdrop-blur-md flex items-end"
+          className="absolute inset-0 z-10 bg-[var(--color-ink)]/70 backdrop-blur-md flex items-end cursor-pointer"
           onClick={() => setShowBody(false)}
         >
-          <div
-            className="w-full kraft rounded-t-2xl gold-edge p-5 space-y-3 max-h-[75vh] overflow-y-auto"
-            onClick={(e) => e.stopPropagation()}
-          >
+          <div className="w-full kraft rounded-t-2xl gold-edge p-5 space-y-3 max-h-[75vh] overflow-y-auto">
             <div className="flex items-center justify-between">
               <div className={`font-brush text-2xl ${rule.color}`}>
                 {rule.title} · 规则
               </div>
-              <button
-                onClick={() => setShowBody(false)}
-                className="w-8 h-8 rounded-full border border-[var(--color-ink)]/30 text-[var(--color-ink)]"
-                aria-label="关闭规则"
-              >
-                ✕
-              </button>
+              <span className="text-xs opacity-60 italic">
+                点任意位置关闭
+              </span>
             </div>
             <ul className="space-y-1.5 text-sm text-[var(--color-ink)]/90">
               {rule.body.map((line, i) => (

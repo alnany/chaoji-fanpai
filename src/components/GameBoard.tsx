@@ -1,7 +1,7 @@
 "use client";
 import { useGame } from "@/lib/store";
 import { FlipCard } from "./CardFace";
-import { StatusBar } from "./StatusBar";
+import { GlobalHud } from "./GlobalHud";
 import { InitialRoll } from "./DiceControls";
 import { RuleModal } from "./RuleModal";
 import { useEffect, useState } from "react";
@@ -59,11 +59,6 @@ export function GameBoard() {
           重开
         </button>
       </header>
-
-      {/* Status */}
-      <div className="px-4 py-2">
-        <StatusBar />
-      </div>
 
       {/* Progress */}
       <div className="px-6 py-2">
@@ -123,6 +118,7 @@ export function GameBoard() {
 
       {!initialRollDone && phase === "playing" && <InitialRoll />}
       <RuleModal />
+      <GlobalHud />
     </div>
   );
 }
