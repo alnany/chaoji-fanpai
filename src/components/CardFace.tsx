@@ -241,7 +241,7 @@ function JokerArt() {
       {/* corner "Joker" nameplate labels — spell the full word so the card
           can never be confused with the J knight card */}
       <div
-        className="absolute top-[4.5%] left-[9%] font-display italic font-bold leading-none"
+        className="absolute top-[8.5%] left-[11%] font-display italic font-bold leading-none"
         style={{
           color: gold,
           fontSize: "clamp(13px, 2.8vh, 20px)",
@@ -251,7 +251,7 @@ function JokerArt() {
         Joker
       </div>
       <div
-        className="absolute bottom-[4.5%] right-[9%] rotate-180 font-display italic font-bold leading-none"
+        className="absolute bottom-[8.5%] right-[11%] rotate-180 font-display italic font-bold leading-none"
         style={{
           color: gold,
           fontSize: "clamp(13px, 2.8vh, 20px)",
@@ -279,14 +279,14 @@ function JokerArt() {
       <div
         className="absolute left-1/2 -translate-x-1/2 flex items-center justify-center"
         style={{
-          top: "10%",
-          width: "78%",
-          height: "70%",
+          top: "11%",
+          width: "82%",
+          height: "74%",
           filter: "drop-shadow(0 6px 14px rgba(0,0,0,0.32))",
         }}
       >
         <svg
-          viewBox="0 0 200 280"
+          viewBox="-12 -22 224 312"
           width="100%"
           height="100%"
           preserveAspectRatio="xMidYMid meet"
@@ -494,6 +494,7 @@ function JokerArt() {
           style={{
             fontSize: "clamp(18px, 4.6vh, 34px)",
             letterSpacing: "0.22em",
+            paddingLeft: "0.22em", /* compensate trailing letter-spacing for optical centering */
             textShadow: `0 1px 0 rgba(0,0,0,0.18), 0 0 8px ${gold}66`,
           }}
         >
