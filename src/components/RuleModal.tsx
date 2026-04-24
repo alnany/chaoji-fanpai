@@ -33,28 +33,23 @@ export function RuleModal() {
   };
 
   return (
-    <div className="fixed inset-0 z-40 bg-[var(--color-ink)]/95 backdrop-blur-sm flex flex-col pt-[max(env(safe-area-inset-top),3.5rem)]">
-      {/* Card — same size as the board card */}
-      <div className="flex-1 min-h-0 flex items-center justify-center px-6 py-3">
+    <div className="fixed inset-0 z-40 bg-[var(--color-ink)]/95 backdrop-blur-sm flex flex-col pt-[max(env(safe-area-inset-top),3.25rem)]">
+      {/* Card fills the screen — the card IS the view */}
+      <div className="flex-1 min-h-0 flex items-center justify-center px-3 py-2">
         <div
-          className="rounded-xl"
-          style={{ width: 220, height: 310 }}
+          className="w-full h-full"
+          style={{
+            maxWidth: "min(100%, calc((100vh - 9rem) * 0.72))",
+            aspectRatio: "0.72 / 1",
+          }}
         >
           <CardFront card={lastFlipped} className="w-full h-full" />
         </div>
       </div>
 
-      {/* Card title (compact, under card) */}
-      <div className="shrink-0 text-center px-6 pb-2">
-        <div className={`font-brush text-2xl ${rule.color} leading-tight`}>
-          {rule.title}
-        </div>
-        <div className="text-xs opacity-60 italic mt-0.5">{rule.subtitle}</div>
-      </div>
-
-      {/* Action panel (J dice / K recorder) */}
+      {/* Action panel (J dice / K recorder) — compact overlay above action bar */}
       {hasActionPanel && (
-        <div className="shrink-0 px-4 pb-2">
+        <div className="shrink-0 px-3 pb-2">
           <div className="max-w-md mx-auto kraft rounded-xl gold-edge p-3">
             {isJBlocking && <JDicePrompt onClose={close} />}
             {isKBlocking && <KRecorder onClose={close} />}
@@ -62,8 +57,8 @@ export function RuleModal() {
         </div>
       )}
 
-      {/* Bottom action bar */}
-      <div className="shrink-0 px-4 pb-[max(env(safe-area-inset-bottom),1rem)] pt-2">
+      {/* Bottom action bar — thin, just what's needed */}
+      <div className="shrink-0 px-3 pb-[max(env(safe-area-inset-bottom),0.75rem)] pt-1">
         <div className="max-w-md mx-auto flex gap-2 items-stretch">
           <button
             onClick={() => setShowBody(true)}
@@ -89,7 +84,7 @@ export function RuleModal() {
         </div>
       </div>
 
-      {/* Rule body bottom sheet — click anywhere to dismiss */}
+      {/* Rule body bottom sheet — click anywhere dismisses */}
       {showBody && (
         <div
           className="absolute inset-0 z-10 bg-[var(--color-ink)]/70 backdrop-blur-md flex items-end cursor-pointer"
