@@ -23,11 +23,14 @@ export function StartScreen() {
           <div className="font-display italic text-sm opacity-60 tracking-widest">
             CHAOJI · FANPAI
           </div>
-          <h1 className="font-brush text-7xl text-[var(--color-cinnabar)] drop-shadow-lg leading-none mt-2">
+          <h1
+            className="font-brush text-[var(--color-cinnabar)] drop-shadow-lg leading-none mt-2"
+            style={{ fontSize: "clamp(96px, 26vw, 200px)" }}
+          >
             超级翻牌
           </h1>
           <div className="mt-3 font-display italic text-[var(--color-red-gold)] text-lg">
-            A Retro Hong Kong Drinking Game
+            A Drinking Game
           </div>
         </div>
 
@@ -35,7 +38,7 @@ export function StartScreen() {
           <div className="font-brush text-xl text-[var(--color-cinnabar)]">
             玩法
           </div>
-          <div>·  4–8 人围桌，一副精简牌共 34 张</div>
+          <div>·  一副精简牌共 34 张</div>
           <div>·  开局摇一颗骰子定初始骰池</div>
           <div>·  轮流翻牌，照牌面规则执行</div>
           <div>·  第 4 张 A 抽出，游戏结束摇总骰</div>
