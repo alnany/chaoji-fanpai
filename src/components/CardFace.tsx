@@ -198,27 +198,30 @@ function AceCenter({ symbol, color }: { symbol: string; color: string }) {
   );
 }
 
-/** Ornate Joker card — decorative frame, dramatic split backdrop, crown,
- *  huge joker face, and elegant "JOKER" nameplate. Corner labels spell the
- *  full word "Joker" (not "J") so it can never be confused with the J card. */
+/** Ornate Joker card — real SVG jester illustration (not an emoji).
+ *  Classic tri-point cap with gold bells, half-painted harlequin face with
+ *  diamond eye mask, and a fanned ruff collar. Corner labels spell the full
+ *  word "Joker" so it is never confused with the J (knight) card. */
 function JokerArt() {
   const gold = "var(--color-red-gold)";
   const red = "var(--color-cinnabar)";
   const ink = "var(--color-ink)";
+  const ivory = "#f4e9d4";
+
   return (
     <div className="absolute inset-0 overflow-hidden">
-      {/* dramatic diagonal split: cinnabar wash top-left, ink wash bottom-right */}
+      {/* dramatic diagonal split backdrop */}
       <div
         className="absolute inset-0"
         style={{
           background: `linear-gradient(135deg, ${red}33 0%, ${red}1a 42%, ${ink}1a 58%, ${ink}33 100%)`,
         }}
       />
-      {/* warm radial glow behind the face */}
+      {/* warm radial glow behind the jester */}
       <div
         className="absolute inset-0"
         style={{
-          background: `radial-gradient(ellipse at 50% 42%, ${gold}2e 0%, transparent 62%)`,
+          background: `radial-gradient(ellipse at 50% 46%, ${gold}33 0%, transparent 62%)`,
         }}
       />
 
@@ -227,7 +230,7 @@ function JokerArt() {
         className="absolute inset-[5%] rounded-lg pointer-events-none"
         style={{
           border: `1.5px solid ${gold}`,
-          boxShadow: `inset 0 0 0 3px rgba(0,0,0,0), inset 0 0 0 4px ${gold}55`,
+          boxShadow: `inset 0 0 0 4px ${gold}44`,
         }}
       />
       <div
@@ -235,134 +238,280 @@ function JokerArt() {
         style={{ border: `0.75px solid ${gold}aa` }}
       />
 
+      {/* corner "Joker" nameplate labels — spell the full word so the card
+          can never be confused with the J knight card */}
+      <div
+        className="absolute top-[4.5%] left-[9%] font-display italic font-bold leading-none"
+        style={{
+          color: gold,
+          fontSize: "clamp(13px, 2.8vh, 20px)",
+          letterSpacing: "0.08em",
+        }}
+      >
+        Joker
+      </div>
+      <div
+        className="absolute bottom-[4.5%] right-[9%] rotate-180 font-display italic font-bold leading-none"
+        style={{
+          color: gold,
+          fontSize: "clamp(13px, 2.8vh, 20px)",
+          letterSpacing: "0.08em",
+        }}
+      >
+        Joker
+      </div>
+
       {/* corner flourishes */}
       {[
-        "top-[5%] left-[5%]",
-        "top-[5%] right-[5%] rotate-90",
-        "bottom-[5%] right-[5%] rotate-180",
-        "bottom-[5%] left-[5%] -rotate-90",
+        "top-[5%] right-[8%]",
+        "bottom-[5%] left-[8%] rotate-180",
       ].map((pos, i) => (
         <div
           key={i}
           className={`absolute ${pos} font-display leading-none`}
-          style={{ color: gold, fontSize: "clamp(20px, 4.2vh, 34px)" }}
+          style={{ color: gold, fontSize: "clamp(18px, 3.6vh, 30px)" }}
         >
           ❧
         </div>
       ))}
 
-      {/* corner "Joker" nameplate labels (top-left + bottom-right, rotated) */}
+      {/* ================ MAIN JESTER ILLUSTRATION ================ */}
       <div
-        className="absolute top-[4%] left-[10%] font-display italic font-bold tracking-wide leading-none"
+        className="absolute left-1/2 -translate-x-1/2 flex items-center justify-center"
         style={{
-          color: gold,
-          fontSize: "clamp(14px, 3vh, 22px)",
-          letterSpacing: "0.08em",
+          top: "10%",
+          width: "78%",
+          height: "70%",
+          filter: "drop-shadow(0 6px 14px rgba(0,0,0,0.32))",
         }}
       >
-        Joker
-      </div>
-      <div
-        className="absolute bottom-[4%] right-[10%] rotate-180 font-display italic font-bold tracking-wide leading-none"
-        style={{
-          color: gold,
-          fontSize: "clamp(14px, 3vh, 22px)",
-          letterSpacing: "0.08em",
-        }}
-      >
-        Joker
-      </div>
+        <svg
+          viewBox="0 0 200 280"
+          width="100%"
+          height="100%"
+          preserveAspectRatio="xMidYMid meet"
+        >
+          <defs>
+            <linearGradient id="hatSplit" x1="0" x2="1" y1="0" y2="0">
+              <stop offset="0.5" stopColor={red} />
+              <stop offset="0.5" stopColor={ink} />
+            </linearGradient>
+            <linearGradient id="faceSplit" x1="0" x2="1" y1="0" y2="0">
+              <stop offset="0.5" stopColor={ivory} />
+              <stop offset="0.5" stopColor="#e6d7b8" />
+            </linearGradient>
+            <radialGradient id="bellShine" cx="0.35" cy="0.35" r="0.6">
+              <stop offset="0" stopColor="#fff3c9" />
+              <stop offset="0.55" stopColor={gold} />
+              <stop offset="1" stopColor="#8b6a20" />
+            </radialGradient>
+            <pattern
+              id="harlequin"
+              width="16"
+              height="16"
+              patternUnits="userSpaceOnUse"
+              patternTransform="rotate(45)"
+            >
+              <rect width="16" height="16" fill={red} />
+              <rect width="8" height="8" fill={ink} />
+              <rect x="8" y="8" width="8" height="8" fill={ink} />
+            </pattern>
+          </defs>
 
-      {/* sparkles */}
-      <div
-        className="absolute top-[22%] left-[16%] rotate-[-18deg]"
-        style={{ color: gold, fontSize: "clamp(16px, 3.4vh, 28px)" }}
-      >
-        ✦
-      </div>
-      <div
-        className="absolute top-[22%] right-[16%] rotate-[18deg]"
-        style={{ color: gold, fontSize: "clamp(16px, 3.4vh, 28px)" }}
-      >
-        ✦
-      </div>
-      <div
-        className="absolute top-[46%] left-[9%]"
-        style={{ color: gold, fontSize: "clamp(12px, 2.4vh, 18px)" }}
-      >
-        ✧
-      </div>
-      <div
-        className="absolute top-[46%] right-[9%]"
-        style={{ color: gold, fontSize: "clamp(12px, 2.4vh, 18px)" }}
-      >
-        ✧
-      </div>
+          {/* ---------------- HAT (three-horn jester cap) ---------------- */}
+          <path
+            d="M18 86 L44 14 L72 86 L100 6 L128 86 L156 14 L182 86 Z"
+            fill="url(#hatSplit)"
+            stroke={gold}
+            strokeWidth="1.5"
+            strokeLinejoin="round"
+          />
+          {/* subtle harlequin sheen across the hat */}
+          <path
+            d="M18 86 L44 14 L72 86 L100 6 L128 86 L156 14 L182 86 Z"
+            fill="url(#harlequin)"
+            opacity="0.18"
+          />
+          {/* hat band */}
+          <rect x="16" y="84" width="168" height="12" fill={gold} />
+          <rect
+            x="16"
+            y="84"
+            width="168"
+            height="12"
+            fill={ink}
+            opacity="0.25"
+          />
+          {/* hat band studs */}
+          {[30, 60, 100, 140, 170].map((x) => (
+            <circle key={x} cx={x} cy={90} r={1.8} fill="#fff3c9" />
+          ))}
 
-      {/* crown above the face */}
-      <div
-        className="absolute left-1/2 -translate-x-1/2"
-        style={{
-          top: "13%",
-          color: gold,
-          fontSize: "clamp(44px, 12vh, 92px)",
-          filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.3))",
-        }}
-      >
-        ♛
-      </div>
+          {/* ---------------- BELLS at each horn tip ---------------- */}
+          {[
+            { x: 44, y: 14 },
+            { x: 100, y: 6 },
+            { x: 156, y: 14 },
+          ].map(({ x, y }, i) => (
+            <g key={i}>
+              {/* bell body */}
+              <circle cx={x} cy={y} r={9.5} fill="url(#bellShine)" stroke={ink} strokeWidth="0.8" />
+              {/* bell clapper slot */}
+              <rect x={x - 1} y={y + 7} width={2} height={5} fill={ink} />
+              {/* highlight */}
+              <circle cx={x - 2.5} cy={y - 2.5} r={2.2} fill="#fff7dd" opacity="0.9" />
+            </g>
+          ))}
 
-      {/* MAIN joker face — big and dominant */}
-      <div
-        className="absolute left-1/2 -translate-x-1/2"
-        style={{
-          top: "30%",
-          fontSize: "clamp(150px, 44vh, 320px)",
-          lineHeight: 1,
-          filter:
-            "drop-shadow(0 6px 12px rgba(0,0,0,0.28)) drop-shadow(0 0 3px rgba(0,0,0,0.25))",
-        }}
-      >
-        🃏
+          {/* ---------------- FACE ---------------- */}
+          {/* outer rim */}
+          <ellipse
+            cx="100"
+            cy="148"
+            rx="44"
+            ry="50"
+            fill="url(#faceSplit)"
+            stroke={ink}
+            strokeWidth="1.5"
+          />
+          {/* left side blush (red-painted half of the face) */}
+          <path
+            d="M100 98 Q56 106 56 148 Q56 192 100 198 Z"
+            fill={red}
+            opacity="0.18"
+          />
+          {/* right side shadow */}
+          <path
+            d="M100 98 Q144 106 144 148 Q144 192 100 198 Z"
+            fill={ink}
+            opacity="0.12"
+          />
+
+          {/* ---------------- EYE MASK (diamond harlequin band) ---------------- */}
+          <path
+            d="M100 114 L62 132 L100 150 L138 132 Z"
+            fill={ink}
+            stroke={gold}
+            strokeWidth="1"
+            strokeLinejoin="round"
+          />
+          {/* eye holes */}
+          <ellipse cx="82" cy="132" rx="5.5" ry="4.2" fill={ivory} />
+          <ellipse cx="118" cy="132" rx="5.5" ry="4.2" fill={ivory} />
+          {/* pupils */}
+          <circle cx="83" cy="132" r="2.4" fill={ink} />
+          <circle cx="119" cy="132" r="2.4" fill={ink} />
+          {/* eye shine */}
+          <circle cx="84.2" cy="130.8" r="0.8" fill="#ffffff" />
+          <circle cx="120.2" cy="130.8" r="0.8" fill="#ffffff" />
+
+          {/* gold tear drop under left eye — classic sad-jester motif */}
+          <path
+            d="M80 148 Q78 154 80 158 Q82 154 80 148 Z"
+            fill={gold}
+            stroke="#8b6a20"
+            strokeWidth="0.4"
+          />
+
+          {/* ---------------- NOSE & MOUTH ---------------- */}
+          <circle cx="100" cy="164" r="5.5" fill={red} stroke={ink} strokeWidth="0.6" />
+          <circle cx="98.5" cy="162.5" r="1.6" fill="#ffb8b0" opacity="0.8" />
+
+          {/* sly smirk */}
+          <path
+            d="M83 180 Q100 190 117 180"
+            stroke={ink}
+            strokeWidth="2.4"
+            fill="none"
+            strokeLinecap="round"
+          />
+          {/* tongue peek */}
+          <path
+            d="M98 184 Q100 188 102 184"
+            stroke={red}
+            strokeWidth="2"
+            fill="none"
+            strokeLinecap="round"
+          />
+
+          {/* ---------------- RUFF COLLAR ---------------- */}
+          {/* central neck band */}
+          <rect x="92" y="196" width="16" height="6" fill={gold} />
+          {/* fanned harlequin lappets */}
+          {[-64, -32, 0, 32, 64].map((dx, i) => {
+            const cx = 100 + dx;
+            const tip = 252;
+            const fill = i % 2 === 0 ? red : ink;
+            return (
+              <g key={i}>
+                <path
+                  d={`M${cx} 202 L${cx - 18} 226 L${cx} ${tip} L${cx + 18} 226 Z`}
+                  fill={fill}
+                  stroke={gold}
+                  strokeWidth="1"
+                  strokeLinejoin="round"
+                />
+                {/* gold bell at each lappet tip */}
+                <circle cx={cx} cy={tip + 5} r={4} fill="url(#bellShine)" stroke={ink} strokeWidth="0.6" />
+                <circle cx={cx - 1} cy={tip + 4} r={1} fill="#fff7dd" opacity="0.9" />
+              </g>
+            );
+          })}
+
+          {/* ---------------- SPARKLES around the head ---------------- */}
+          {[
+            { x: 28, y: 120, s: 6 },
+            { x: 172, y: 120, s: 6 },
+            { x: 22, y: 170, s: 4 },
+            { x: 178, y: 170, s: 4 },
+          ].map(({ x, y, s }, i) => (
+            <g key={i} transform={`translate(${x} ${y})`}>
+              <path
+                d={`M0 -${s} L${s * 0.25} -${s * 0.25} L${s} 0 L${s * 0.25} ${s * 0.25} L0 ${s} L-${s * 0.25} ${s * 0.25} L-${s} 0 L-${s * 0.25} -${s * 0.25} Z`}
+                fill={gold}
+              />
+            </g>
+          ))}
+        </svg>
       </div>
 
       {/* JOKER nameplate banner near the bottom */}
       <div
         className="absolute left-1/2 -translate-x-1/2 flex items-center gap-3"
         style={{
-          bottom: "14%",
+          bottom: "6.5%",
           color: gold,
         }}
       >
         <span
           className="font-display"
-          style={{ fontSize: "clamp(16px, 4vh, 30px)", opacity: 0.85 }}
+          style={{ fontSize: "clamp(14px, 3.2vh, 24px)", opacity: 0.85 }}
         >
           ❦
         </span>
         <span
-          className="font-display italic font-bold tracking-[0.18em] leading-none"
+          className="font-display italic font-bold leading-none"
           style={{
-            fontSize: "clamp(22px, 5.5vh, 42px)",
-            textShadow: `0 1px 0 rgba(0,0,0,0.15), 0 0 8px ${gold}55`,
+            fontSize: "clamp(18px, 4.6vh, 34px)",
+            letterSpacing: "0.22em",
+            textShadow: `0 1px 0 rgba(0,0,0,0.18), 0 0 8px ${gold}66`,
           }}
         >
           JOKER
         </span>
         <span
           className="font-display"
-          style={{ fontSize: "clamp(16px, 4vh, 30px)", opacity: 0.85 }}
+          style={{ fontSize: "clamp(14px, 3.2vh, 24px)", opacity: 0.85 }}
         >
           ❦
         </span>
       </div>
-
       {/* thin gold underline beneath the nameplate */}
       <div
         className="absolute left-1/2 -translate-x-1/2"
         style={{
-          bottom: "11.5%",
-          width: "44%",
+          bottom: "4.5%",
+          width: "46%",
           height: 1,
           background: `linear-gradient(to right, transparent, ${gold}, transparent)`,
         }}
@@ -370,6 +519,7 @@ function JokerArt() {
     </div>
   );
 }
+
 
 
 export function CardFront({
