@@ -74,17 +74,23 @@ export function GameBoard() {
         </div>
       </div>
 
-      {/* Deck area */}
-      <div className="flex-1 flex items-center justify-center p-6 relative">
+      {/* Deck area — card scales to fill most of the viewport, matching the flipped view */}
+      <div className="flex-1 flex items-center justify-center px-3 py-2 relative min-h-0">
         {deck.length > 0 ? (
-          <div className="relative" style={{ width: 220, height: 310 }}>
+          <div
+            className="relative w-full"
+            style={{
+              maxWidth: "min(100%, calc((100vh - 12rem) * 0.72))",
+              aspectRatio: "0.72 / 1",
+            }}
+          >
             {/* Stacked shadow cards */}
             {[...Array(Math.min(4, deck.length - 1))].map((_, i) => (
               <div
                 key={i}
                 className="absolute inset-0 rounded-xl paper gold-edge"
                 style={{
-                  transform: `translate(${(i + 1) * 3}px, ${(i + 1) * 3}px) rotate(${
+                  transform: `translate(${(i + 1) * 4}px, ${(i + 1) * 4}px) rotate(${
                     (i + 1) * 0.6
                   }deg)`,
                   opacity: 0.6 - i * 0.1,
@@ -95,7 +101,7 @@ export function GameBoard() {
             <FlipCard
               card={lastFlipped}
               flipped={flipped}
-              className="w-[220px] h-[310px] float-idle"
+              className="w-full h-full float-idle"
               onClick={handleFlip}
             />
           </div>
