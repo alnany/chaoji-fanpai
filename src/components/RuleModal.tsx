@@ -65,9 +65,11 @@ export function RuleModal() {
               case "K":
                 p = { head: "喝 1 杯", sub: "口头定义下一张 K 的喝法" };
                 break;
-              case "A":
-                p = { head: `第 ${aceCount} 张 A · 无事发生`, sub: "喝一口运气酒就行" };
+              case "A": {
+                const left = 4 - aceCount;
+                p = { head: `第 ${aceCount} 张 A · 还有 ${left} 张`, sub: "第 4 张 A 开终局" };
                 break;
+              }
               case "JOKER":
                 p = { head: "找一个人猜拳，输的认主人", sub: "主人罚酒可找狗代喝" };
                 break;
