@@ -3,6 +3,7 @@ import { useGame } from "@/lib/store";
 import { Die } from "./Die";
 import { sfx } from "@/lib/sfx";
 import { useState } from "react";
+import { LoseIntro } from "./LoseIntro";
 import clsx from "clsx";
 
 const ROLL_MS = 1300;
@@ -14,6 +15,7 @@ export function EndGameScreen() {
   const [rolling, setRolling] = useState(false);
   // Per-die rolling flags so non-kept dice tumble and kept dice sit still.
   const [rollMask, setRollMask] = useState<boolean[]>([]);
+  const [introDone, setIntroDone] = useState(false);
 
   const hasRolled = finalRolls.length > 0;
   const total = finalRolls.reduce((a, b) => a + b, 0);
@@ -53,6 +55,10 @@ export function EndGameScreen() {
       return n;
     });
   };
+
+  if (!introDone) {
+    return <LoseIntro dicePool={dicePool} onDone={() => setIntroDone(true)} />;
+  }
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center">

@@ -96,6 +96,39 @@ html, body {
     70%  { transform: scale(1.03) rotateZ(-1deg); }
     100% { transform: scale(1)    rotateZ(0deg); }
   }
+  
+  /* 你输了 仪式感 */
+  @keyframes lose-slam {
+    0%   { transform: scale(3.2) rotate(-8deg); opacity: 0; filter: blur(12px); }
+    40%  { transform: scale(0.82) rotate(3deg); opacity: 1; filter: blur(0); }
+    55%  { transform: scale(1.06) rotate(-2deg); }
+    70%  { transform: scale(0.97) rotate(1deg); }
+    85%  { transform: scale(1.02) rotate(-0.5deg); }
+    100% { transform: scale(1)    rotate(0); }
+  }
+  .lose-slam {
+    animation: lose-slam 0.75s cubic-bezier(0.2, 0.7, 0.3, 1) 1 both;
+  }
+
+  @keyframes lose-subtitle-in {
+    0%   { letter-spacing: 1.2em; opacity: 0; }
+    100% { letter-spacing: 0.35em; opacity: 0.9; }
+  }
+  .lose-subtitle {
+    animation: lose-subtitle-in 0.9s ease-out 0.5s both;
+  }
+
+  @keyframes lose-vignette-pulse {
+    0%,100% { box-shadow: inset 0 0 160px 60px rgba(198,42,42,0.28); }
+    50%     { box-shadow: inset 0 0 220px 90px rgba(198,42,42,0.45); }
+  }
+  .lose-vignette {
+    animation: lose-vignette-pulse 2.0s ease-in-out infinite;
+    background:
+      radial-gradient(circle at 20% 10%, rgba(198,42,42,0.12), transparent 40%),
+      radial-gradient(circle at 80% 90%, rgba(198,42,42,0.10), transparent 45%);
+  }
+
   .die-settle {
     animation: die-settle 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.25);
     transform-origin: center bottom;

@@ -207,6 +207,56 @@ function diceLand() {
   osc.stop(now + 0.28);
 }
 
+function gong() {
+  // 终局 "你输了" 入场：重击 + 低鼓 + 长混响尾音
+  const c = ensureCtx();
+  const dst = out();
+  if (!c || !dst) return;
+  const now = c.currentTime;
+
+  // Low body
+  const osc1 = c.createOscillator();
+  const g1 = c.createGain();
+  osc1.type = "sine";
+  osc1.frequency.setValueAtTime(72, now);
+  osc1.frequency.exponentialRampToValueAtTime(42, now + 1.6);
+  g1.gain.setValueAtTime(0.0001, now);
+  g1.gain.exponentialRampToValueAtTime(0.9, now + 0.02);
+  g1.gain.exponentialRampToValueAtTime(0.0001, now + 1.8);
+  osc1.connect(g1).connect(dst);
+  osc1.start(now);
+  osc1.stop(now + 2.0);
+
+  // Mid ring
+  const osc2 = c.createOscillator();
+  const g2 = c.createGain();
+  osc2.type = "triangle";
+  osc2.frequency.setValueAtTime(220, now);
+  osc2.frequency.exponentialRampToValueAtTime(130, now + 1.2);
+  g2.gain.setValueAtTime(0.0001, now);
+  g2.gain.exponentialRampToValueAtTime(0.35, now + 0.03);
+  g2.gain.exponentialRampToValueAtTime(0.0001, now + 1.3);
+  osc2.connect(g2).connect(dst);
+  osc2.start(now);
+  osc2.stop(now + 1.5);
+
+  // Impact noise transient
+  const buf = c.createBuffer(1, c.sampleRate * 0.2, c.sampleRate);
+  const data = buf.getChannelData(0);
+  for (let i = 0; i < data.length; i++) {
+    data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (c.sampleRate * 0.04));
+  }
+  const noise = c.createBufferSource();
+  noise.buffer = buf;
+  const ng = c.createGain();
+  ng.gain.value = 0.45;
+  const bp = c.createBiquadFilter();
+  bp.type = "bandpass";
+  bp.frequency.value = 800;
+  noise.connect(bp).connect(ng).connect(dst);
+  noise.start(now);
+}
+
 function setMuted(next: boolean) {
   muted = next;
   if (masterGain) masterGain.gain.value = next ? 0 : 0.75;
@@ -235,6 +285,7 @@ export const sfx = {
   diceRollStart,
   diceRollStop,
   diceLand,
+  gong,
   setMuted,
   isMuted,
 };
