@@ -86,12 +86,15 @@ export function GameBoard() {
       </div>
 
       {/* Deck area — card scales to fill most of the viewport, matching the flipped view */}
-      <div className="flex-1 flex items-center justify-center px-3 py-2 relative min-h-0">
+      <div
+        className="flex-1 flex items-center justify-center px-3 relative min-h-0 transition-[padding] duration-300"
+        style={{ paddingTop: "0.5rem", paddingBottom: showRule ? "6rem" : "0.5rem" }}
+      >
         {deck.length > 0 ? (
           <div
             className="relative w-full"
             style={{
-              maxWidth: "min(100%, calc((100vh - 12rem) * 0.72))",
+              maxWidth: `min(100%, calc((100vh - ${showRule ? "17rem" : "12rem"}) * 0.72))`,
               aspectRatio: "0.72 / 1",
             }}
           >
