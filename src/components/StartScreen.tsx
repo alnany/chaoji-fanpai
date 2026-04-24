@@ -20,12 +20,9 @@ export function StartScreen() {
 
       <div className="relative z-10 max-w-sm w-full space-y-8">
         <div>
-          <div className="font-display italic text-sm opacity-60 tracking-widest">
-            CHAOJI · FANPAI
-          </div>
           <h1
-            className="font-brush text-[var(--color-cinnabar)] drop-shadow-lg leading-none mt-2"
-            style={{ fontSize: "clamp(96px, 26vw, 200px)" }}
+            className="font-brush text-[var(--color-cinnabar)] drop-shadow-lg leading-none whitespace-nowrap"
+            style={{ fontSize: "clamp(56px, 18vw, 128px)" }}
           >
             超级翻牌
           </h1>
