@@ -140,12 +140,6 @@ export function RuleModal() {
                 </li>
               ))}
             </ul>
-            {lastFlipped.rank === "3" && (
-              <div className="rounded-lg p-3 bg-[var(--color-jade)]/20 border border-[var(--color-jade)]/40 text-[var(--color-ink)] text-xs">
-                提示：右上角状态栏的「神经病」开关也已打开，切换下一个 3
-                时再关掉或转移。
-              </div>
-            )}
           </div>
         </div>
       )}
