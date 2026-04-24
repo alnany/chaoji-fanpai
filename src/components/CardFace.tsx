@@ -198,134 +198,179 @@ function AceCenter({ symbol, color }: { symbol: string; color: string }) {
   );
 }
 
-/** Ornate joker face — decorative gold filigree, split-color backdrop,
- *  sparkles, crown, bells. No text labels. */
+/** Ornate Joker card — decorative frame, dramatic split backdrop, crown,
+ *  huge joker face, and elegant "JOKER" nameplate. Corner labels spell the
+ *  full word "Joker" (not "J") so it can never be confused with the J card. */
 function JokerArt() {
   const gold = "var(--color-red-gold)";
   const red = "var(--color-cinnabar)";
   const ink = "var(--color-ink)";
   return (
     <div className="absolute inset-0 overflow-hidden">
-      {/* dramatic split backdrop (red top-left / ink bottom-right) */}
+      {/* dramatic diagonal split: cinnabar wash top-left, ink wash bottom-right */}
       <div
         className="absolute inset-0"
         style={{
-          background: `linear-gradient(135deg, ${red}22 0%, ${red}11 48%, ${ink}11 52%, ${ink}22 100%)`,
+          background: `linear-gradient(135deg, ${red}33 0%, ${red}1a 42%, ${ink}1a 58%, ${ink}33 100%)`,
         }}
       />
-      {/* radial glow around center */}
+      {/* warm radial glow behind the face */}
       <div
         className="absolute inset-0"
         style={{
-          background: `radial-gradient(ellipse at center, ${gold}22 0%, transparent 60%)`,
+          background: `radial-gradient(ellipse at 50% 42%, ${gold}2e 0%, transparent 62%)`,
         }}
-      />
-      {/* inner filigree frame */}
-      <div
-        className="absolute inset-[6%] rounded-lg pointer-events-none"
-        style={{
-          border: `1.5px solid ${gold}`,
-          boxShadow: `inset 0 0 0 3px transparent, inset 0 0 0 4px ${gold}55`,
-        }}
-      />
-      <div
-        className="absolute inset-[8%] rounded-md pointer-events-none"
-        style={{ border: `0.5px solid ${gold}99` }}
       />
 
-      {/* corner filigree ornaments */}
+      {/* double filigree frame */}
+      <div
+        className="absolute inset-[5%] rounded-lg pointer-events-none"
+        style={{
+          border: `1.5px solid ${gold}`,
+          boxShadow: `inset 0 0 0 3px rgba(0,0,0,0), inset 0 0 0 4px ${gold}55`,
+        }}
+      />
+      <div
+        className="absolute inset-[7.5%] rounded-md pointer-events-none"
+        style={{ border: `0.75px solid ${gold}aa` }}
+      />
+
+      {/* corner flourishes */}
       {[
-        "top-[6%] left-[6%]",
-        "top-[6%] right-[6%] rotate-90",
-        "bottom-[6%] right-[6%] rotate-180",
-        "bottom-[6%] left-[6%] -rotate-90",
+        "top-[5%] left-[5%]",
+        "top-[5%] right-[5%] rotate-90",
+        "bottom-[5%] right-[5%] rotate-180",
+        "bottom-[5%] left-[5%] -rotate-90",
       ].map((pos, i) => (
         <div
           key={i}
-          className={`absolute ${pos} font-display`}
-          style={{ color: gold, fontSize: "clamp(18px, 4vh, 32px)" }}
+          className={`absolute ${pos} font-display leading-none`}
+          style={{ color: gold, fontSize: "clamp(20px, 4.2vh, 34px)" }}
         >
           ❧
         </div>
       ))}
 
-      {/* sparkles around the face */}
+      {/* corner "Joker" nameplate labels (top-left + bottom-right, rotated) */}
       <div
-        className="absolute top-[20%] left-[18%] rotate-[-15deg]"
-        style={{ color: gold, fontSize: "clamp(14px, 3vh, 24px)" }}
+        className="absolute top-[4%] left-[10%] font-display italic font-bold tracking-wide leading-none"
+        style={{
+          color: gold,
+          fontSize: "clamp(14px, 3vh, 22px)",
+          letterSpacing: "0.08em",
+        }}
+      >
+        Joker
+      </div>
+      <div
+        className="absolute bottom-[4%] right-[10%] rotate-180 font-display italic font-bold tracking-wide leading-none"
+        style={{
+          color: gold,
+          fontSize: "clamp(14px, 3vh, 22px)",
+          letterSpacing: "0.08em",
+        }}
+      >
+        Joker
+      </div>
+
+      {/* sparkles */}
+      <div
+        className="absolute top-[22%] left-[16%] rotate-[-18deg]"
+        style={{ color: gold, fontSize: "clamp(16px, 3.4vh, 28px)" }}
       >
         ✦
       </div>
       <div
-        className="absolute top-[20%] right-[18%] rotate-[15deg]"
-        style={{ color: gold, fontSize: "clamp(14px, 3vh, 24px)" }}
+        className="absolute top-[22%] right-[16%] rotate-[18deg]"
+        style={{ color: gold, fontSize: "clamp(16px, 3.4vh, 28px)" }}
       >
         ✦
       </div>
       <div
-        className="absolute bottom-[22%] left-[16%]"
+        className="absolute top-[46%] left-[9%]"
         style={{ color: gold, fontSize: "clamp(12px, 2.4vh, 18px)" }}
       >
         ✧
       </div>
       <div
-        className="absolute bottom-[22%] right-[16%]"
+        className="absolute top-[46%] right-[9%]"
         style={{ color: gold, fontSize: "clamp(12px, 2.4vh, 18px)" }}
       >
         ✧
       </div>
 
-      {/* crown on top of joker face */}
+      {/* crown above the face */}
       <div
         className="absolute left-1/2 -translate-x-1/2"
         style={{
-          top: "14%",
+          top: "13%",
           color: gold,
-          fontSize: "clamp(36px, 10vh, 76px)",
-          filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.25))",
+          fontSize: "clamp(44px, 12vh, 92px)",
+          filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.3))",
         }}
       >
         ♛
       </div>
 
-      {/* main joker glyph */}
+      {/* MAIN joker face — big and dominant */}
       <div
-        className="absolute inset-0 flex items-center justify-center"
+        className="absolute left-1/2 -translate-x-1/2"
         style={{
-          fontSize: "clamp(110px, 34vh, 240px)",
+          top: "30%",
+          fontSize: "clamp(150px, 44vh, 320px)",
+          lineHeight: 1,
           filter:
-            "drop-shadow(0 4px 10px rgba(0,0,0,0.25)) drop-shadow(0 0 2px rgba(0,0,0,0.2))",
+            "drop-shadow(0 6px 12px rgba(0,0,0,0.28)) drop-shadow(0 0 3px rgba(0,0,0,0.25))",
         }}
       >
         🃏
       </div>
 
-      {/* bells flanking the feet */}
+      {/* JOKER nameplate banner near the bottom */}
       <div
-        className="absolute left-[22%]"
+        className="absolute left-1/2 -translate-x-1/2 flex items-center gap-3"
         style={{
-          bottom: "12%",
+          bottom: "14%",
           color: gold,
-          fontSize: "clamp(22px, 5vh, 40px)",
-          transform: "rotate(-20deg)",
         }}
       >
-        🔔
+        <span
+          className="font-display"
+          style={{ fontSize: "clamp(16px, 4vh, 30px)", opacity: 0.85 }}
+        >
+          ❦
+        </span>
+        <span
+          className="font-display italic font-bold tracking-[0.18em] leading-none"
+          style={{
+            fontSize: "clamp(22px, 5.5vh, 42px)",
+            textShadow: `0 1px 0 rgba(0,0,0,0.15), 0 0 8px ${gold}55`,
+          }}
+        >
+          JOKER
+        </span>
+        <span
+          className="font-display"
+          style={{ fontSize: "clamp(16px, 4vh, 30px)", opacity: 0.85 }}
+        >
+          ❦
+        </span>
       </div>
+
+      {/* thin gold underline beneath the nameplate */}
       <div
-        className="absolute right-[22%]"
+        className="absolute left-1/2 -translate-x-1/2"
         style={{
-          bottom: "12%",
-          color: gold,
-          fontSize: "clamp(22px, 5vh, 40px)",
-          transform: "rotate(20deg)",
+          bottom: "11.5%",
+          width: "44%",
+          height: 1,
+          background: `linear-gradient(to right, transparent, ${gold}, transparent)`,
         }}
-      >
-        🔔
-      </div>
+      />
     </div>
   );
 }
+
 
 export function CardFront({
   card,
