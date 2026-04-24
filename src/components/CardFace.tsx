@@ -1,6 +1,5 @@
 "use client";
 import { type Card, RANK_LABEL, SUIT_SYMBOL, isRed } from "@/lib/deck";
-import { RULES } from "@/lib/rules";
 import clsx from "clsx";
 
 export function CardBack({ className = "" }: { className?: string }) {
@@ -516,21 +515,7 @@ export function CardFront({
     >
       <div className="absolute inset-1.5 rounded-lg border border-[var(--color-red-gold)]/50 pointer-events-none" />
 
-      {/* Rule-name banner across the top of the card */}
-      <div
-        className="absolute left-1/2 -translate-x-1/2 font-brush leading-none pointer-events-none z-10 whitespace-nowrap"
-        style={{
-          top: "2.5%",
-          color: "var(--color-red-gold)",
-          fontSize: "clamp(20px, 4.6vh, 36px)",
-          letterSpacing: "0.06em",
-          textShadow: "0 1px 0 rgba(0,0,0,0.18)",
-        }}
-      >
-        {RULES[card.rank].title}
-      </div>
-
-      {isJoker ? (
+{isJoker ? (
         <JokerArt />
       ) : (
         <>
