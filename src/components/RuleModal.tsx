@@ -3,6 +3,7 @@ import { useGame } from "@/lib/store";
 import { RULES } from "@/lib/rules";
 import { JDicePrompt } from "./DiceControls";
 import { useEffect, useState } from "react";
+import { sfx } from "@/lib/sfx";
 
 /**
  * RuleModal — inline action bar + optional rule body sheet.
@@ -24,6 +25,7 @@ export function RuleModal() {
   const isJBlocking = lastFlipped.rank === "J";
 
   const close = () => {
+    sfx.click();
     setShowBody(false);
     closeRule();
   };
@@ -40,7 +42,7 @@ export function RuleModal() {
           )}
           <div className="flex gap-2 items-stretch">
             <button
-              onClick={() => setShowBody((v) => !v)}
+              onClick={() => { sfx.softTap(); setShowBody((v) => !v); }}
               className="shrink-0 px-4 py-3 rounded-lg bg-[var(--color-ink)]/80 backdrop-blur border border-[var(--color-red-gold)]/60 text-[var(--color-red-gold)] text-sm font-display"
               aria-label="查看规则"
             >
@@ -77,7 +79,7 @@ export function RuleModal() {
                 {rule.title} · 规则
               </div>
               <button
-                onClick={() => setShowBody(false)}
+                onClick={() => { sfx.softTap(); setShowBody(false); }}
                 className="text-xs opacity-60 italic"
               >
                 关闭

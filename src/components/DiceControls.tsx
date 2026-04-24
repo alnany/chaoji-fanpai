@@ -2,6 +2,7 @@
 import { useGame } from "@/lib/store";
 import { useState } from "react";
 import { Die } from "./Die";
+import { sfx } from "@/lib/sfx";
 
 export function InitialRoll() {
   const { initialRollDone, setInitialDice, dicePool } = useGame();
@@ -12,12 +13,14 @@ export function InitialRoll() {
 
   const roll = () => {
     if (rolling) return;
+    sfx.diceRollStart();
     setRolling(true);
     // Let the 3D tumble animation play for ~1.3s, then lock the final face.
     setTimeout(() => {
       const result = 1 + Math.floor(Math.random() * 6);
       setFace(result);
       setRolling(false);
+      sfx.diceLand();
       setTimeout(() => setInitialDice(result), 800);
     }, 1300);
   };
@@ -58,6 +61,7 @@ export function JDicePrompt({ onClose }: { onClose: () => void }) {
 
   const confirm = () => {
     if (!picked) return;
+    sfx.click();
     addDice(picked);
     onClose();
   };
@@ -69,7 +73,7 @@ export function JDicePrompt({ onClose }: { onClose: () => void }) {
         {[1, 2, 3].map((n) => (
           <button
             key={n}
-            onClick={() => setPicked(n)}
+            onClick={() => { sfx.click(); setPicked(n); }}
             className={`w-14 h-14 rounded-xl border text-2xl font-display ${
               picked === n
                 ? "bg-[var(--color-red-gold)] text-[var(--color-ink)] border-[var(--color-red-gold)]"

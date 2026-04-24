@@ -5,6 +5,7 @@ import { GlobalHud } from "./GlobalHud";
 import { InitialRoll } from "./DiceControls";
 import { RuleModal } from "./RuleModal";
 import { useEffect, useState } from "react";
+import { sfx } from "@/lib/sfx";
 
 export function GameBoard() {
   const {
@@ -43,6 +44,7 @@ export function GameBoard() {
     if (!initialRollDone) return;
     if (showRule) return;
     if (deck.length === 0) return;
+    sfx.flip();
     flipCard();
   };
 
@@ -53,6 +55,7 @@ export function GameBoard() {
       {/* Subtle top-left reset; logo & title removed for a clean deck-first look. */}
       <button
         onClick={() => {
+          sfx.click();
           if (confirm("重开一局？")) resetGame();
         }}
         className="fixed top-[max(env(safe-area-inset-top),0.75rem)] left-3 z-20 text-[11px] px-2.5 py-1 rounded-full bg-[var(--color-ink)]/60 backdrop-blur border border-[var(--color-ivory)]/20 opacity-70 hover:opacity-100"

@@ -1,6 +1,7 @@
 "use client";
 import { useGame } from "@/lib/store";
 import { Die } from "./Die";
+import { sfx } from "@/lib/sfx";
 import { useState } from "react";
 import clsx from "clsx";
 
@@ -18,6 +19,7 @@ export function EndGameScreen() {
   const total = finalRolls.reduce((a, b) => a + b, 0);
 
   const doRoll = () => {
+    sfx.diceRollStart();
     setRolling(true);
     setRollMask(new Array(dicePool).fill(true));
     setTimeout(() => {
@@ -25,22 +27,26 @@ export function EndGameScreen() {
       setKeep(new Array(dicePool).fill(false));
       setRolling(false);
       setRollMask(new Array(dicePool).fill(false));
+      sfx.diceLand();
     }, ROLL_MS);
   };
 
   const doReroll = () => {
     // Only the non-kept dice tumble.
+    sfx.diceRollStart();
     setRolling(true);
     setRollMask(keep.map((k) => !k));
     setTimeout(() => {
       reroll(keep);
       setRolling(false);
       setRollMask(new Array(finalRolls.length).fill(false));
+      sfx.diceLand();
     }, ROLL_MS);
   };
 
   const toggleKeep = (i: number) => {
     if (rolling) return;
+    sfx.softTap();
     setKeep((k) => {
       const n = [...k];
       n[i] = !n[i];
@@ -133,7 +139,7 @@ export function EndGameScreen() {
         </div>
 
         <button
-          onClick={resetGame}
+          onClick={() => { sfx.click(); resetGame(); }}
           className="text-sm opacity-70 hover:opacity-100 underline underline-offset-4"
         >
           再来一局
