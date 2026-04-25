@@ -1,34 +1,32 @@
 "use client";
 
 /**
- * Sound effects powered by real samples (Web Audio API for low-latency
- * playback + polyphony). Falls back to silence if decoding fails.
+ * Real-sample SFX engine.
  *
- * Samples:
- *   /sounds/click.mp3  — UI button click
- *   /sounds/flip.mp3   — playing card flip
- *   /sounds/dice.mp3   — dice shaken in cup
+ * Loads three MP3 samples (provided by the user) into AudioBuffers on first
+ * user gesture and plays them via AudioBufferSourceNode for overlap-safe,
+ * low-latency playback. The end-game gong remains procedurally synthesized.
  *
- * Gong (end-game) is still procedurally synthesized.
+ * Files (all in /public/sfx/):
+ *   - dice.mp3 — dice shaken in a cup     -> diceRollStart (loop) / diceLand
+ *   - flip.mp3 — playing card flipped     -> flip
+ *   - tap.mp3  — button click             -> click / softTap
  */
 
 let ctx: AudioContext | null = null;
 let masterGain: GainNode | null = null;
 let muted = false;
 
-type Sample = {
-  url: string;
-  buffer: AudioBuffer | null;
-  loading: Promise<AudioBuffer | null> | null;
+type SampleKey = "dice" | "flip" | "tap";
+const SAMPLE_URLS: Record<SampleKey, string> = {
+  dice: "/sounds/dice.mp3",
+  flip: "/sounds/flip.mp3",
+  tap: "/sounds/click.mp3",
 };
+const buffers: Partial<Record<SampleKey, AudioBuffer>> = {};
+const loading: Partial<Record<SampleKey, Promise<void>>> = {};
 
-const samples: Record<"click" | "flip" | "dice", Sample> = {
-  click: { url: "/sounds/click.mp3", buffer: null, loading: null },
-  flip: { url: "/sounds/flip.mp3", buffer: null, loading: null },
-  dice: { url: "/sounds/dice.mp3", buffer: null, loading: null },
-};
-
-let diceLoop: { source: AudioBufferSourceNode; gain: GainNode } | null = null;
+let activeDice: { src: AudioBufferSourceNode; gain: GainNode } | null = null;
 
 function ensureCtx(): AudioContext | null {
   if (typeof window === "undefined") return null;
@@ -42,129 +40,122 @@ function ensureCtx(): AudioContext | null {
   if (!AC) return null;
   ctx = new AC();
   masterGain = ctx.createGain();
-  masterGain.gain.value = muted ? 0 : 0.9;
+  masterGain.gain.value = muted ? 0 : 0.85;
   masterGain.connect(ctx.destination);
-  // Kick off loading on first unlock (user gesture has happened by now).
-  void Promise.all([load("click"), load("flip"), load("dice")]);
+  // Pre-warm all samples in the background.
+  (Object.keys(SAMPLE_URLS) as SampleKey[]).forEach((k) => void load(k));
   return ctx;
 }
 
-async function load(name: keyof typeof samples): Promise<AudioBuffer | null> {
-  const s = samples[name];
-  if (s.buffer) return s.buffer;
-  if (s.loading) return s.loading;
-  const c = ctx;
-  if (!c) return null;
-  s.loading = (async () => {
+async function load(key: SampleKey): Promise<void> {
+  if (buffers[key]) return;
+  if (loading[key]) return loading[key];
+  const c = ensureCtx();
+  if (!c) return;
+  const p = (async () => {
     try {
-      const res = await fetch(s.url);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const res = await fetch(SAMPLE_URLS[key]);
       const ab = await res.arrayBuffer();
-      s.buffer = await c.decodeAudioData(ab);
-      return s.buffer;
-    } catch (e) {
-      console.warn(`[sfx] load ${name} failed`, e);
-      return null;
-    } finally {
-      s.loading = null;
+      const buf = await new Promise<AudioBuffer>((resolve, reject) =>
+        c.decodeAudioData(ab.slice(0), resolve, reject)
+      );
+      buffers[key] = buf;
+    } catch {
+      // Silent failure — sfx are non-essential.
     }
   })();
-  return s.loading;
+  loading[key] = p;
+  return p;
 }
 
-function out(): AudioNode | null {
+function play(
+  key: SampleKey,
+  opts: { volume?: number; rate?: number; loop?: boolean } = {}
+): { src: AudioBufferSourceNode; gain: GainNode } | null {
   const c = ensureCtx();
   if (!c || !masterGain) return null;
-  return masterGain;
-}
-
-async function playOneShot(
-  name: keyof typeof samples,
-  opts: { volume?: number; rate?: number; offset?: number } = {}
-) {
-  const c = ensureCtx();
-  const dst = out();
-  if (!c || !dst) return;
-  const buf = samples[name].buffer ?? (await load(name));
-  if (!buf) return;
+  const buf = buffers[key];
+  if (!buf) {
+    // Kick off load and silently drop this play — next call will work.
+    void load(key);
+    return null;
+  }
   const src = c.createBufferSource();
   src.buffer = buf;
+  src.loop = !!opts.loop;
   src.playbackRate.value = opts.rate ?? 1;
   const g = c.createGain();
   g.gain.value = opts.volume ?? 1;
-  src.connect(g).connect(dst);
-  src.start(0, opts.offset ?? 0);
+  src.connect(g).connect(masterGain);
+  src.start();
+  return { src, gain: g };
 }
 
-/* ---------- Public API ---------- */
+/* ---------- Public effects ---------- */
 
 function click() {
-  void playOneShot("click", { volume: 0.9 });
+  // Slight pitch+volume variation so consecutive clicks don't sound identical.
+  play("tap", {
+    volume: 0.9,
+    rate: 0.95 + Math.random() * 0.1,
+  });
 }
 
 function softTap() {
-  // Same sample at lower volume + faster rate so it reads as "lighter"
-  void playOneShot("click", { volume: 0.55, rate: 1.15 });
+  // Quieter, slightly lower-pitched version of the same tap sample.
+  play("tap", {
+    volume: 0.5,
+    rate: 0.78 + Math.random() * 0.08,
+  });
 }
 
 function flip() {
-  void playOneShot("flip", { volume: 1.0 });
+  play("flip", {
+    volume: 0.9,
+    rate: 0.95 + Math.random() * 0.1,
+  });
 }
 
-async function diceRollStart() {
+function diceRollStart() {
+  if (activeDice) return;
   const c = ensureCtx();
-  const dst = out();
-  if (!c || !dst) return;
-  if (diceLoop) return;
-  const buf = samples.dice.buffer ?? (await load("dice"));
-  if (!buf || diceLoop) return; // could have been stopped before load finished
-  const src = c.createBufferSource();
-  src.buffer = buf;
-  src.loop = true;
-  // Loop only the middle of the sample to avoid re-triggering the initial
-  // transient on every loop (cup impact at the start).
-  if (buf.duration > 0.5) {
-    src.loopStart = 0.08;
-    src.loopEnd = Math.max(0.5, buf.duration - 0.08);
-  }
-  const g = c.createGain();
-  g.gain.value = 0.95;
-  src.connect(g).connect(dst);
-  src.start(0);
-  diceLoop = { source: src, gain: g };
+  if (!c) return;
+  const handle = play("dice", {
+    volume: 0.9,
+    rate: 0.95 + Math.random() * 0.1,
+    loop: true,
+  });
+  if (handle) activeDice = handle;
 }
 
 function diceRollStop() {
-  if (!diceLoop || !ctx) return;
-  const now = ctx.currentTime;
-  // Quick fade to avoid click
-  diceLoop.gain.gain.cancelScheduledValues(now);
-  diceLoop.gain.gain.setValueAtTime(diceLoop.gain.gain.value, now);
-  diceLoop.gain.gain.linearRampToValueAtTime(0.0001, now + 0.04);
+  const c = ensureCtx();
+  const cur = activeDice;
+  activeDice = null;
+  if (!c || !cur) return;
+  const now = c.currentTime;
+  // 60ms fadeout to avoid clicks when looped sample is cut.
+  cur.gain.gain.cancelScheduledValues(now);
+  cur.gain.gain.setValueAtTime(cur.gain.gain.value, now);
+  cur.gain.gain.linearRampToValueAtTime(0.0001, now + 0.06);
   try {
-    diceLoop.source.stop(now + 0.05);
+    cur.src.stop(now + 0.07);
   } catch {}
-  diceLoop = null;
 }
 
 function diceLand() {
+  // End the loop and play a single non-looped "settle" pass — gives the
+  // natural decay of the cup shake.
   diceRollStop();
-  // Play the tail of the sample — the natural ending where the dice settle.
-  const buf = samples.dice.buffer;
-  if (buf) {
-    const tailStart = Math.max(0, buf.duration - 0.5);
-    void playOneShot("dice", { volume: 1.0, offset: tailStart });
-  } else {
-    void playOneShot("dice", { volume: 1.0 });
-  }
+  play("dice", { volume: 0.85, rate: 1 });
 }
 
-/* ---------- End-game gong (still synthesized) ---------- */
+/* ---------- End-game gong (still synthesized — no sample provided) ---------- */
 
 function gong() {
   const c = ensureCtx();
-  const dst = out();
-  if (!c || !dst) return;
+  if (!c || !masterGain) return;
+  const dst: AudioNode = masterGain;
   const now = c.currentTime;
 
   const osc1 = c.createOscillator();
@@ -207,11 +198,11 @@ function gong() {
   noise.start(now);
 }
 
-/* ---------- Mute controls ---------- */
+/* ---------- Mute ---------- */
 
 function setMuted(next: boolean) {
   muted = next;
-  if (masterGain) masterGain.gain.value = next ? 0 : 0.9;
+  if (masterGain) masterGain.gain.value = next ? 0 : 0.85;
   if (typeof window !== "undefined") {
     try {
       localStorage.setItem("cf_muted", next ? "1" : "0");
