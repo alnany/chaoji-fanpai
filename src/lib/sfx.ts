@@ -1,11 +1,12 @@
 "use client";
 
 /**
- * Procedural sound effects via the Web Audio API.
+ * Sound effects for the game.
  *
- * No external files. Every sound is synthesized from oscillators + noise
- * buffers, which keeps the bundle tiny and makes the SFX feel part of the
- * game rather than a canned library.
+ * - Dice rattle uses a real recorded sample (`/sfx/dice-shake.mp3`) for the
+ *   shake-in-cup loop and a snippet of the same sample for the landing hit.
+ * - Other sounds (click, softTap, card flip, end-game gong) are still
+ *   synthesized procedurally via the Web Audio API to stay small and snappy.
  *
  * Usage: `import { sfx } from "@/lib/sfx"` then call `sfx.click()`, etc.
  * The first call lazily creates an AudioContext — call any sfx method from
@@ -17,6 +18,32 @@ let masterGain: GainNode | null = null;
 let noiseBuf: AudioBuffer | null = null;
 let diceLoop: { stop: () => void } | null = null;
 let muted = false;
+
+// Real dice-shake sample (loaded lazily on first use)
+const DICE_SAMPLE_URL = "/sfx/dice-shake.mp3";
+let diceSampleBuf: AudioBuffer | null = null;
+let diceSamplePromise: Promise<AudioBuffer | null> | null = null;
+let diceSampleSrc: AudioBufferSourceNode | null = null;
+let diceSampleGain: GainNode | null = null;
+
+function loadDiceSample(): Promise<AudioBuffer | null> {
+  const c = ensureCtx();
+  if (!c) return Promise.resolve(null);
+  if (diceSampleBuf) return Promise.resolve(diceSampleBuf);
+  if (diceSamplePromise) return diceSamplePromise;
+  diceSamplePromise = fetch(DICE_SAMPLE_URL)
+    .then((r) => {
+      if (!r.ok) throw new Error("fetch failed");
+      return r.arrayBuffer();
+    })
+    .then((ab) => c.decodeAudioData(ab))
+    .then((buf) => {
+      diceSampleBuf = buf;
+      return buf;
+    })
+    .catch(() => null);
+  return diceSamplePromise;
+}
 
 function ensureCtx(): AudioContext | null {
   if (typeof window === "undefined") return null;
@@ -38,6 +65,9 @@ function ensureCtx(): AudioContext | null {
   noiseBuf = ctx.createBuffer(1, size, ctx.sampleRate);
   const data = noiseBuf.getChannelData(0);
   for (let i = 0; i < size; i++) data[i] = Math.random() * 2 - 1;
+
+  // Kick off the dice sample load early (non-blocking).
+  void loadDiceSample();
 
   return ctx;
 }
@@ -90,8 +120,6 @@ function softTap() {
 
 function flip() {
   // Dry paper "fwip" + landing snap. Total ~130ms.
-  //   1) Short broadband rustle, peaking in the 2–6 kHz range with some body.
-  //   2) Immediate thwack at the end = high-pass noise click + tiny low-body.
   const c = ensureCtx();
   const dst = out();
   if (!c || !dst || !noiseBuf) return;
@@ -149,121 +177,93 @@ function flip() {
   body.stop(snapAt + 0.1);
 }
 
-/* ---------- Dice ---------- */
+/* ---------- Dice (real sample) ---------- */
 
-/**
- * One "wood-on-wood" clack — the core unit of any dice sound.
- * Mix of:
- *   - very short broadband noise transient (the impact)
- *   - resonant band around 700–1600 Hz (plastic/wood body)
- *   - a short low thump (mass hitting the surface/cup)
- * Each call varies pitch/level slightly so repeated clacks don't machine-gun.
- */
-function diceClack(opts: { volume?: number; lowCup?: boolean } = {}) {
+function playDiceSample(opts: {
+  offset?: number;
+  duration?: number;
+  loop?: boolean;
+  volume?: number;
+  fadeOut?: number;
+  playbackRate?: number;
+} = {}): { source: AudioBufferSourceNode; gain: GainNode } | null {
   const c = ensureCtx();
   const dst = out();
-  if (!c || !dst || !noiseBuf) return;
-  const now = c.currentTime;
-  const v = opts.volume ?? 1;
-
-  // Offset start within the noise buffer for variety
-  const offset = Math.random() * 0.8;
-
-  // 1) Transient: bright noise burst (contact)
-  const trans = c.createBufferSource();
-  trans.buffer = noiseBuf;
-  const transHp = c.createBiquadFilter();
-  transHp.type = "highpass";
-  transHp.frequency.value = 1800 + Math.random() * 1600;
-  const transGain = c.createGain();
-  const peakT = 0.28 + Math.random() * 0.18;
-  transGain.gain.setValueAtTime(0.0001, now);
-  transGain.gain.exponentialRampToValueAtTime(peakT * v, now + 0.002);
-  transGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.025);
-  trans.connect(transHp).connect(transGain).connect(dst);
-  trans.start(now, offset);
-  trans.stop(now + 0.06);
-
-  // 2) Body: resonant mid-band (the "wood" pitch of the cube)
-  const body = c.createBufferSource();
-  body.buffer = noiseBuf;
-  const bodyBp = c.createBiquadFilter();
-  bodyBp.type = "bandpass";
-  const bodyFreq = 700 + Math.random() * 900;
-  bodyBp.frequency.value = bodyFreq;
-  bodyBp.Q.value = 6;
-  const bodyGain = c.createGain();
-  bodyGain.gain.setValueAtTime(0.0001, now);
-  bodyGain.gain.exponentialRampToValueAtTime(0.22 * v, now + 0.004);
-  bodyGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.08);
-  body.connect(bodyBp).connect(bodyGain).connect(dst);
-  body.start(now, offset + 0.1);
-  body.stop(now + 0.1);
-
-  // 3) Low thump: tonal sub-pulse so the dice feel like they have mass
-  const thump = c.createOscillator();
-  const tg = c.createGain();
-  thump.type = "sine";
-  const tBase = 140 + Math.random() * 80;
-  thump.frequency.setValueAtTime(tBase, now);
-  thump.frequency.exponentialRampToValueAtTime(tBase * 0.55, now + 0.06);
-  tg.gain.setValueAtTime(0.0001, now);
-  tg.gain.exponentialRampToValueAtTime(0.14 * v, now + 0.004);
-  tg.gain.exponentialRampToValueAtTime(0.0001, now + 0.09);
-  thump.connect(tg).connect(dst);
-  thump.start(now);
-  thump.stop(now + 0.11);
-
-  // 4) Optional "cup hollow" — resonance around 400 Hz for a cup-held rattle
-  if (opts.lowCup) {
-    const cup = c.createBufferSource();
-    cup.buffer = noiseBuf;
-    const cupBp = c.createBiquadFilter();
-    cupBp.type = "bandpass";
-    cupBp.frequency.value = 400 + Math.random() * 120;
-    cupBp.Q.value = 10;
-    const cg = c.createGain();
-    cg.gain.setValueAtTime(0.0001, now);
-    cg.gain.exponentialRampToValueAtTime(0.12 * v, now + 0.005);
-    cg.gain.exponentialRampToValueAtTime(0.0001, now + 0.12);
-    cup.connect(cupBp).connect(cg).connect(dst);
-    cup.start(now, offset + 0.2);
-    cup.stop(now + 0.15);
+  if (!c || !dst || !diceSampleBuf) return null;
+  const src = c.createBufferSource();
+  src.buffer = diceSampleBuf;
+  src.loop = !!opts.loop;
+  src.playbackRate.value = opts.playbackRate ?? 1;
+  if (src.loop) {
+    // Loop the noisy middle of the shake so we don't hear the start/stop
+    // transients every time it wraps around.
+    const dur = diceSampleBuf.duration;
+    src.loopStart = Math.min(0.15, dur * 0.1);
+    src.loopEnd = Math.max(dur - 0.2, dur * 0.9);
   }
+  const g = c.createGain();
+  const now = c.currentTime;
+  const vol = opts.volume ?? 0.9;
+  g.gain.setValueAtTime(0.0001, now);
+  g.gain.exponentialRampToValueAtTime(vol, now + 0.015);
+  src.connect(g).connect(dst);
+  const when = now;
+  const offset = opts.offset ?? 0;
+  if (opts.duration != null) {
+    src.start(when, offset, opts.duration);
+    if (opts.fadeOut) {
+      const endAt = when + opts.duration;
+      g.gain.setValueAtTime(vol, endAt - opts.fadeOut);
+      g.gain.exponentialRampToValueAtTime(0.0001, endAt);
+    }
+  } else {
+    src.start(when, offset);
+  }
+  return { source: src, gain: g };
 }
 
 function diceRollStart() {
   if (diceLoop) return;
   let stopped = false;
+  let local: { source: AudioBufferSourceNode; gain: GainNode } | null = null;
 
-  // Real rattle = several dice colliding per "tick" — fire 2–4 staggered
-  // clacks per wave, then a short pause, then another wave. Mix hard
-  // (volume 1, cup off) and soft (volume 0.6, cup on) clacks so it sounds
-  // like cubes bouncing off each other and the cup wall.
-  const wave = () => {
+  const begin = () => {
     if (stopped) return;
-    const n = 2 + Math.floor(Math.random() * 3); // 2–4 hits
-    for (let i = 0; i < n; i++) {
-      const delayMs = i * (18 + Math.random() * 32); // 18–50ms between hits
-      setTimeout(() => {
-        if (stopped) return;
-        const soft = Math.random() < 0.45;
-        diceClack({
-          volume: soft ? 0.55 + Math.random() * 0.15 : 0.85 + Math.random() * 0.15,
-          lowCup: soft,
-        });
-      }, delayMs);
+    // Slight randomized start offset + playbackRate so repeated rolls don't
+    // sound identical.
+    const offset = Math.random() * 0.15;
+    const rate = 0.96 + Math.random() * 0.12; // 0.96–1.08
+    local = playDiceSample({ loop: true, offset, volume: 0.9, playbackRate: rate });
+    if (local) {
+      diceSampleSrc = local.source;
+      diceSampleGain = local.gain;
     }
-    // Gap between waves
-    const gap = 90 + Math.random() * 120; // 90–210ms
-    setTimeout(wave, gap);
   };
-  wave();
+
+  if (diceSampleBuf) {
+    begin();
+  } else {
+    void loadDiceSample().then(() => {
+      if (!stopped) begin();
+    });
+  }
 
   diceLoop = {
     stop: () => {
       stopped = true;
       diceLoop = null;
+      if (local) {
+        const c = ctx!;
+        const now = c.currentTime;
+        try {
+          local.gain.gain.cancelScheduledValues(now);
+          local.gain.gain.setValueAtTime(local.gain.gain.value, now);
+          local.gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.06);
+          local.source.stop(now + 0.08);
+        } catch {}
+      }
+      diceSampleSrc = null;
+      diceSampleGain = null;
     },
   };
 }
@@ -279,21 +279,26 @@ function diceLand() {
   const dst = out();
   if (!c || !dst) return;
 
-  // Settle sequence: 2 big clacks close together (die tumbling to rest),
-  // then 1 final thump once it stops.
-  diceClack({ volume: 1.1 });
-  setTimeout(() => diceClack({ volume: 0.9, lowCup: true }), 45);
-  setTimeout(() => diceClack({ volume: 0.7 }), 110);
+  // Play the tail end of the sample (the final settle + thud). If the sample
+  // isn't loaded yet, fall back to a short synthesized thud so the UX never
+  // goes silent.
+  if (diceSampleBuf) {
+    const dur = diceSampleBuf.duration;
+    // Use the last ~0.5s of the recording as the settle.
+    const tailLen = Math.min(0.55, dur);
+    const offset = Math.max(0, dur - tailLen);
+    playDiceSample({ offset, duration: tailLen, volume: 1.0, fadeOut: 0.08 });
+  }
 
-  // Final low thud (die fully at rest on the table)
-  const now = c.currentTime + 0.16;
+  // Always layer a low thud so it feels like the die has real mass.
+  const now = c.currentTime + 0.02;
   const osc = c.createOscillator();
   const g = c.createGain();
   osc.type = "sine";
   osc.frequency.setValueAtTime(110, now);
   osc.frequency.exponentialRampToValueAtTime(55, now + 0.22);
   g.gain.setValueAtTime(0.0001, now);
-  g.gain.exponentialRampToValueAtTime(0.3, now + 0.006);
+  g.gain.exponentialRampToValueAtTime(0.25, now + 0.006);
   g.gain.exponentialRampToValueAtTime(0.0001, now + 0.28);
   osc.connect(g).connect(dst);
   osc.start(now);
