@@ -5,7 +5,7 @@
 //  - For same-origin static assets: stale-while-revalidate.
 //  - Never cache Next.js server actions or API responses.
 
-const CACHE = "chaoji-fanpai-v2";
+const CACHE = "chaoji-fanpai-v3";
 const SHELL = [
   "/",
   "/manifest.webmanifest",
@@ -13,9 +13,9 @@ const SHELL = [
   "/icon-192.png",
   "/icon-512.png",
   "/apple-touch-icon.png",
-  "/sounds/dice.mp3",
-  "/sounds/flip.mp3",
-  "/sounds/tap.mp3",
+  "/sfx/dice-shake.mp3",
+  "/sfx/card-flip.mp3",
+  "/sfx/tap-click.mp3",
 ];
 
 self.addEventListener("install", (event) => {
@@ -57,7 +57,12 @@ self.addEventListener("fetch", (event) => {
   }
 
   // Static same-origin -> stale-while-revalidate
-  if (url.pathname.startsWith("/_next/") || SHELL.includes(url.pathname) || /\.(png|svg|webp|jpg|css|js|woff2?)$/.test(url.pathname)) {
+  if (
+    url.pathname.startsWith("/_next/") ||
+    url.pathname.startsWith("/sfx/") ||
+    SHELL.includes(url.pathname) ||
+    /\.(png|svg|webp|jpg|css|js|woff2?|mp3|ogg|wav)$/.test(url.pathname)
+  ) {
     event.respondWith(
       caches.match(req).then((cached) => {
         const fetchPromise = fetch(req)

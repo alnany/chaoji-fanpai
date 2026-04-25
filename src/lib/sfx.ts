@@ -1,30 +1,34 @@
 "use client";
 
 /**
- * Sound effects — uses real recorded samples for the three main interactions
- * (dice shaking in cup, playing card flip, tap/click), plus a synthesized
- * gong for the end-game ceremony.
+ * Sound effects powered by real samples (Web Audio API for low-latency
+ * playback + polyphony). Falls back to silence if decoding fails.
  *
- * Samples live under /public/sfx/ and are decoded lazily into AudioBuffers
- * the first time any sfx method runs inside a user gesture.
+ * Samples:
+ *   /sounds/click.mp3  — UI button click
+ *   /sounds/flip.mp3   — playing card flip
+ *   /sounds/dice.mp3   — dice shaken in cup
  *
- * Usage: `import { sfx } from "@/lib/sfx"` then call `sfx.click()`, etc.
+ * Gong (end-game) is still procedurally synthesized.
  */
-
-type BufKey = "click" | "flip" | "dice";
-
-const SAMPLE_URLS: Record<BufKey, string> = {
-  click: "/sfx/tap-click.mp3",
-  flip: "/sfx/card-flip.mp3",
-  dice: "/sfx/dice-shake.mp3",
-};
 
 let ctx: AudioContext | null = null;
 let masterGain: GainNode | null = null;
-const buffers: Partial<Record<BufKey, AudioBuffer>> = {};
-const decoding: Partial<Record<BufKey, Promise<AudioBuffer | null>>> = {};
-let diceLoop: { stop: () => void } | null = null;
 let muted = false;
+
+type Sample = {
+  url: string;
+  buffer: AudioBuffer | null;
+  loading: Promise<AudioBuffer | null> | null;
+};
+
+const samples: Record<"click" | "flip" | "dice", Sample> = {
+  click: { url: "/sounds/click.mp3", buffer: null, loading: null },
+  flip: { url: "/sounds/flip.mp3", buffer: null, loading: null },
+  dice: { url: "/sounds/dice.mp3", buffer: null, loading: null },
+};
+
+let diceLoop: { source: AudioBufferSourceNode; gain: GainNode } | null = null;
 
 function ensureCtx(): AudioContext | null {
   if (typeof window === "undefined") return null;
@@ -40,153 +44,118 @@ function ensureCtx(): AudioContext | null {
   masterGain = ctx.createGain();
   masterGain.gain.value = muted ? 0 : 0.9;
   masterGain.connect(ctx.destination);
-  // Kick off preload of all samples in the background.
-  (Object.keys(SAMPLE_URLS) as BufKey[]).forEach((k) => void loadBuf(k));
+  // Kick off loading on first unlock (user gesture has happened by now).
+  void Promise.all([load("click"), load("flip"), load("dice")]);
   return ctx;
 }
 
+async function load(name: keyof typeof samples): Promise<AudioBuffer | null> {
+  const s = samples[name];
+  if (s.buffer) return s.buffer;
+  if (s.loading) return s.loading;
+  const c = ctx;
+  if (!c) return null;
+  s.loading = (async () => {
+    try {
+      const res = await fetch(s.url);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const ab = await res.arrayBuffer();
+      s.buffer = await c.decodeAudioData(ab);
+      return s.buffer;
+    } catch (e) {
+      console.warn(`[sfx] load ${name} failed`, e);
+      return null;
+    } finally {
+      s.loading = null;
+    }
+  })();
+  return s.loading;
+}
+
 function out(): AudioNode | null {
-  ensureCtx();
+  const c = ensureCtx();
+  if (!c || !masterGain) return null;
   return masterGain;
 }
 
-async function loadBuf(key: BufKey): Promise<AudioBuffer | null> {
-  if (buffers[key]) return buffers[key] ?? null;
-  if (decoding[key]) return decoding[key] ?? null;
-  const c = ensureCtx();
-  if (!c) return null;
-  const p = (async () => {
-    try {
-      const res = await fetch(SAMPLE_URLS[key]);
-      if (!res.ok) return null;
-      const arr = await res.arrayBuffer();
-      const buf = await c.decodeAudioData(arr);
-      buffers[key] = buf;
-      return buf;
-    } catch {
-      return null;
-    }
-  })();
-  decoding[key] = p;
-  return p;
-}
-
-/**
- * Fire-and-forget sample playback. If the buffer isn't decoded yet we kick
- * off decoding and play as soon as it's ready — the first tap may be silent
- * on a cold start, but every subsequent tap is instant.
- */
-function playBuf(
-  key: BufKey,
-  opts: { volume?: number; rate?: number; offset?: number; duration?: number } = {}
-): AudioBufferSourceNode | null {
+async function playOneShot(
+  name: keyof typeof samples,
+  opts: { volume?: number; rate?: number; offset?: number } = {}
+) {
   const c = ensureCtx();
   const dst = out();
-  if (!c || !dst) return null;
-  const buf = buffers[key];
-  if (!buf) {
-    void loadBuf(key).then((b) => {
-      if (b && !muted) playBuf(key, opts);
-    });
-    return null;
-  }
+  if (!c || !dst) return;
+  const buf = samples[name].buffer ?? (await load(name));
+  if (!buf) return;
   const src = c.createBufferSource();
   src.buffer = buf;
   src.playbackRate.value = opts.rate ?? 1;
   const g = c.createGain();
   g.gain.value = opts.volume ?? 1;
   src.connect(g).connect(dst);
-  const now = c.currentTime;
-  if (opts.duration != null) {
-    src.start(now, opts.offset ?? 0, opts.duration);
-  } else {
-    src.start(now, opts.offset ?? 0);
-  }
-  return src;
+  src.start(0, opts.offset ?? 0);
 }
 
-/* ---------- Public sounds ---------- */
+/* ---------- Public API ---------- */
 
 function click() {
-  // Tap/click sample at full volume.
-  playBuf("click", { volume: 1 });
+  void playOneShot("click", { volume: 0.9 });
 }
 
 function softTap() {
-  // Same sample a touch quieter + slightly higher pitch for secondary UI.
-  playBuf("click", { volume: 0.65, rate: 1.15 });
+  // Same sample at lower volume + faster rate so it reads as "lighter"
+  void playOneShot("click", { volume: 0.55, rate: 1.15 });
 }
 
 function flip() {
-  playBuf("flip", { volume: 1 });
+  void playOneShot("flip", { volume: 1.0 });
 }
 
-/**
- * Dice shake — loops the sample through a gain node so we can fade out
- * cleanly when the player lets go / lands the dice.
- */
-function diceRollStart() {
-  if (diceLoop) return;
+async function diceRollStart() {
   const c = ensureCtx();
   const dst = out();
   if (!c || !dst) return;
-
-  const start = (buf: AudioBuffer) => {
-    const src = c.createBufferSource();
-    src.buffer = buf;
-    src.loop = true;
-    // Loop the "meat" of the shake (skip initial silence / tail ringing)
-    src.loopStart = Math.min(0.1, buf.duration * 0.1);
-    src.loopEnd = Math.max(0.2, buf.duration - 0.05);
-    const g = c.createGain();
-    g.gain.value = 0.9;
-    src.connect(g).connect(dst);
-    src.start();
-
-    diceLoop = {
-      stop: () => {
-        const t = c.currentTime;
-        g.gain.cancelScheduledValues(t);
-        g.gain.setValueAtTime(g.gain.value, t);
-        g.gain.exponentialRampToValueAtTime(0.0001, t + 0.12);
-        try {
-          src.stop(t + 0.15);
-        } catch {}
-        diceLoop = null;
-      },
-    };
-  };
-
-  const pre = buffers.dice;
-  if (pre) {
-    start(pre);
-  } else {
-    void loadBuf("dice").then((buf) => {
-      if (!buf) return;
-      if (diceLoop) return; // another call may have already started
-      if (muted) return;
-      start(buf);
-    });
-    // Placeholder so rapid start/stop doesn't race.
-    diceLoop = { stop: () => { diceLoop = null; } };
+  if (diceLoop) return;
+  const buf = samples.dice.buffer ?? (await load("dice"));
+  if (!buf || diceLoop) return; // could have been stopped before load finished
+  const src = c.createBufferSource();
+  src.buffer = buf;
+  src.loop = true;
+  // Loop only the middle of the sample to avoid re-triggering the initial
+  // transient on every loop (cup impact at the start).
+  if (buf.duration > 0.5) {
+    src.loopStart = 0.08;
+    src.loopEnd = Math.max(0.5, buf.duration - 0.08);
   }
+  const g = c.createGain();
+  g.gain.value = 0.95;
+  src.connect(g).connect(dst);
+  src.start(0);
+  diceLoop = { source: src, gain: g };
 }
 
 function diceRollStop() {
-  diceLoop?.stop();
+  if (!diceLoop || !ctx) return;
+  const now = ctx.currentTime;
+  // Quick fade to avoid click
+  diceLoop.gain.gain.cancelScheduledValues(now);
+  diceLoop.gain.gain.setValueAtTime(diceLoop.gain.gain.value, now);
+  diceLoop.gain.gain.linearRampToValueAtTime(0.0001, now + 0.04);
+  try {
+    diceLoop.source.stop(now + 0.05);
+  } catch {}
   diceLoop = null;
 }
 
 function diceLand() {
   diceRollStop();
-  // Play the tail end of the dice sample as the "landing" — it contains the
-  // final clack/settle of the recording.
-  const buf = buffers.dice;
+  // Play the tail of the sample — the natural ending where the dice settle.
+  const buf = samples.dice.buffer;
   if (buf) {
-    const tailFrom = Math.max(0, buf.duration - 0.45);
-    playBuf("dice", { volume: 1, offset: tailFrom });
+    const tailStart = Math.max(0, buf.duration - 0.5);
+    void playOneShot("dice", { volume: 1.0, offset: tailStart });
   } else {
-    playBuf("dice", { volume: 1 });
+    void playOneShot("dice", { volume: 1.0 });
   }
 }
 
@@ -237,6 +206,8 @@ function gong() {
   noise.connect(bp).connect(ng).connect(dst);
   noise.start(now);
 }
+
+/* ---------- Mute controls ---------- */
 
 function setMuted(next: boolean) {
   muted = next;
