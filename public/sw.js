@@ -5,7 +5,7 @@
 //  - For same-origin static assets: stale-while-revalidate.
 //  - Never cache Next.js server actions or API responses.
 
-const CACHE = "chaoji-fanpai-v1";
+const CACHE = "chaoji-fanpai-v2";
 const SHELL = [
   "/",
   "/manifest.webmanifest",
@@ -13,6 +13,9 @@ const SHELL = [
   "/icon-192.png",
   "/icon-512.png",
   "/apple-touch-icon.png",
+  "/sounds/dice.mp3",
+  "/sounds/flip.mp3",
+  "/sounds/tap.mp3",
 ];
 
 self.addEventListener("install", (event) => {
