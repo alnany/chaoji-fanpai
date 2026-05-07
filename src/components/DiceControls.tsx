@@ -3,11 +3,13 @@ import { useGame } from "@/lib/store";
 import { useState } from "react";
 import { Die } from "./Die";
 import { sfx } from "@/lib/sfx";
+import { useT } from "@/lib/i18n";
 
 export function InitialRoll() {
   const { initialRollDone, setInitialDice, dicePool } = useGame();
   const [rolling, setRolling] = useState(false);
   const [face, setFace] = useState<number | null>(null);
+  const t = useT();
 
   if (initialRollDone) return null;
 
@@ -15,7 +17,6 @@ export function InitialRoll() {
     if (rolling) return;
     sfx.diceRollStart();
     setRolling(true);
-    // Let the 3D tumble animation play for ~1.3s, then lock the final face.
     setTimeout(() => {
       const result = 1 + Math.floor(Math.random() * 6);
       setFace(result);
@@ -30,11 +31,9 @@ export function InitialRoll() {
       <div className="max-w-sm w-full text-center space-y-6">
         <div>
           <div className="font-brush text-3xl text-[var(--color-cinnabar)] mb-2">
-            开局摇骰
+            {t("dice.initial.title")}
           </div>
-          <div className="text-sm opacity-70">
-            一人摇一颗，点数即初始骰池数量
-          </div>
+          <div className="text-sm opacity-70">{t("dice.initial.sub")}</div>
         </div>
         <div
           className="flex justify-center items-end"
@@ -47,9 +46,15 @@ export function InitialRoll() {
           disabled={rolling}
           className="w-full py-3 rounded-xl font-brush text-xl bg-[var(--color-cinnabar)] text-[var(--color-ivory)] gold-edge disabled:opacity-60"
         >
-          {rolling ? "摇中..." : face ? `确认 ${face} 颗` : "摇"}
+          {rolling
+            ? t("dice.btn.rolling")
+            : face
+            ? t("dice.btn.confirm", { n: face })
+            : t("dice.btn.roll")}
         </button>
-        <div className="text-xs opacity-50">当前骰池：{dicePool}</div>
+        <div className="text-xs opacity-50">
+          {t("dice.pool.current", { n: dicePool })}
+        </div>
       </div>
     </div>
   );
@@ -58,6 +63,7 @@ export function InitialRoll() {
 export function JDicePrompt({ onClose }: { onClose: () => void }) {
   const { addDice } = useGame();
   const [picked, setPicked] = useState<number | null>(null);
+  const t = useT();
 
   const confirm = () => {
     if (!picked) return;
@@ -68,12 +74,15 @@ export function JDicePrompt({ onClose }: { onClose: () => void }) {
 
   return (
     <div className="mt-4 space-y-3">
-      <div className="text-center opacity-70 text-sm">本次加多少颗？</div>
+      <div className="text-center opacity-70 text-sm">{t("prompt.jDice")}</div>
       <div className="flex gap-2 justify-center">
         {[1, 2, 3].map((n) => (
           <button
             key={n}
-            onClick={() => { sfx.click(); setPicked(n); }}
+            onClick={() => {
+              sfx.click();
+              setPicked(n);
+            }}
             className={`w-14 h-14 rounded-xl border text-2xl font-display ${
               picked === n
                 ? "bg-[var(--color-red-gold)] text-[var(--color-ink)] border-[var(--color-red-gold)]"
@@ -89,7 +98,7 @@ export function JDicePrompt({ onClose }: { onClose: () => void }) {
         disabled={!picked}
         className="w-full py-2.5 rounded-lg bg-[var(--color-jade)] text-[var(--color-ivory)] disabled:opacity-50"
       >
-        确认加入骰池
+        {t("prompt.jDiceConfirm")}
       </button>
     </div>
   );

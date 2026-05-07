@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { sfx } from "@/lib/sfx";
+import { useT } from "@/lib/i18n";
 
 type BIPEvent = Event & {
   prompt: () => Promise<void>;
@@ -9,26 +10,20 @@ type BIPEvent = Event & {
 
 /**
  * PWA install banner + service worker registration.
- * - Registers /sw.js on mount.
- * - Captures `beforeinstallprompt` on Android/Chrome and shows an install button.
- * - On iOS Safari (no prompt API), shows a "Add to Home Screen" hint.
- * - Hides automatically when already running standalone.
- * - User can dismiss; dismissal persisted in localStorage for 7 days.
  */
 export function PWAInstall() {
   const [deferredPrompt, setDeferredPrompt] = useState<BIPEvent | null>(null);
   const [showIOSHint, setShowIOSHint] = useState(false);
   const [dismissed, setDismissed] = useState(false);
+  const t = useT();
 
   useEffect(() => {
-    // Register service worker
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", () => {
         navigator.serviceWorker.register("/sw.js").catch(() => {});
       });
     }
 
-    // Already installed?
     const standalone =
       window.matchMedia("(display-mode: standalone)").matches ||
       // @ts-expect-error iOS specific
@@ -38,7 +33,6 @@ export function PWAInstall() {
       return;
     }
 
-    // Dismissal cooldown
     try {
       const t = localStorage.getItem("cf_pwa_dismissed_at");
       if (t && Date.now() - Number(t) < 7 * 24 * 60 * 60 * 1000) {
@@ -47,14 +41,12 @@ export function PWAInstall() {
       }
     } catch {}
 
-    // Android / Chrome install prompt
     const onBIP = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e as BIPEvent);
     };
     window.addEventListener("beforeinstallprompt", onBIP);
 
-    // iOS Safari detection (no prompt API there)
     const ua = navigator.userAgent;
     const isIOS = /iPad|iPhone|iPod/.test(ua) && !/(Edg|EdgiOS)/.test(ua);
     const isSafari = /Safari/.test(ua) && !/CriOS|FxiOS|EdgiOS/.test(ua);
@@ -101,12 +93,10 @@ export function PWAInstall() {
         <div className="text-2xl">📲</div>
         <div className="flex-1 text-left">
           <div className="font-brush text-lg text-[var(--color-cinnabar)] leading-tight">
-            装到手机桌面
+            {t("pwa.title")}
           </div>
           <div className="text-[11px] opacity-80 leading-tight mt-0.5">
-            {deferredPrompt
-              ? "一键安装，像 App 一样打开。"
-              : "点 Safari 底部「分享」→ 添加到主屏幕。"}
+            {deferredPrompt ? t("pwa.subAndroid") : t("pwa.subIOS")}
           </div>
         </div>
         {deferredPrompt ? (
@@ -114,13 +104,13 @@ export function PWAInstall() {
             onClick={handleInstall}
             className="px-3 py-2 rounded-lg bg-[var(--color-cinnabar)] text-[var(--color-ivory)] font-brush text-sm gold-edge"
           >
-            安装
+            {t("pwa.install")}
           </button>
         ) : null}
         <button
           onClick={handleDismiss}
           className="w-7 h-7 rounded-full opacity-60 hover:opacity-100 text-sm"
-          aria-label="关闭"
+          aria-label={t("pwa.dismissAria")}
         >
           ✕
         </button>

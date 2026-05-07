@@ -6,6 +6,7 @@ import { InitialRoll } from "./DiceControls";
 import { RuleModal } from "./RuleModal";
 import { useEffect, useState } from "react";
 import { sfx } from "@/lib/sfx";
+import { useT } from "@/lib/i18n";
 
 export function GameBoard() {
   const {
@@ -20,9 +21,8 @@ export function GameBoard() {
   } = useGame();
   const [flipped, setFlipped] = useState(false);
   const [instant, setInstant] = useState(false);
+  const t = useT();
 
-  // When a card flips, animate forward. When modal closes, snap back instantly
-  // (no reverse animation) so the deck looks static until user taps again.
   useEffect(() => {
     if (showRule && lastFlipped) {
       setInstant(false);
@@ -56,12 +56,12 @@ export function GameBoard() {
       <button
         onClick={() => {
           sfx.click();
-          if (confirm("重开一局？")) resetGame();
+          if (confirm(t("board.resetConfirm"))) resetGame();
         }}
         className="fixed top-[max(env(safe-area-inset-top),0.75rem)] left-3 z-20 text-[11px] px-2.5 py-1 rounded-full bg-[var(--color-ink)]/60 backdrop-blur border border-[var(--color-ivory)]/20 opacity-70 hover:opacity-100"
-        aria-label="重开一局"
+        aria-label={t("board.resetAria")}
       >
-        重开
+        {t("board.resetBtn")}
       </button>
 
       {/* Deck area — card stays pinned regardless of flip state (no layout shift). */}
@@ -98,12 +98,12 @@ export function GameBoard() {
           </div>
         ) : (
           <div className="text-center space-y-2 opacity-70">
-            <div className="font-brush text-3xl">牌已翻完</div>
+            <div className="font-brush text-3xl">{t("board.deckEmpty")}</div>
             <button
               onClick={resetGame}
               className="text-sm underline underline-offset-4"
             >
-              重开一局
+              {t("board.newGame")}
             </button>
           </div>
         )}
@@ -113,11 +113,11 @@ export function GameBoard() {
       {!showRule && (
         <div className="px-6 pb-[max(env(safe-area-inset-bottom),1rem)] pt-1 space-y-1.5">
           <div className="flex items-center justify-between text-[10px] opacity-60">
-            <span>剩 {deck.length} 张</span>
+            <span>{t("board.leftCount", { n: deck.length })}</span>
             <span className="opacity-80">
-              {deck.length > 0 && initialRollDone ? "点牌堆翻下一张" : ""}
+              {deck.length > 0 && initialRollDone ? t("board.flipHint") : ""}
             </span>
-            <span>{progress}% 已翻</span>
+            <span>{t("board.progress", { pct: progress })}</span>
           </div>
           <div className="h-1 rounded-full bg-[var(--color-ivory)]/10 overflow-hidden">
             <div

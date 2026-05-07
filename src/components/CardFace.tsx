@@ -1,8 +1,17 @@
 "use client";
 import { type Card, RANK_LABEL, SUIT_SYMBOL, isRed } from "@/lib/deck";
+import { useLang, useT } from "@/lib/i18n";
 import clsx from "clsx";
 
 export function CardBack({ className = "" }: { className?: string }) {
+  const t = useT();
+  const lang = useLang((s) => s.lang);
+  // EN uses 4-letter words (FLIP/CARD) vs 1-character Chinese glyphs, so
+  // shrink the font to keep both lines on one row.
+  const fontSize =
+    lang === "en"
+      ? "clamp(44px, 12vh, 96px)"
+      : "clamp(72px, 20vh, 160px)";
   return (
     <div
       className={clsx(
@@ -16,12 +25,13 @@ export function CardBack({ className = "" }: { className?: string }) {
           className="font-brush leading-[0.95] text-center"
           style={{
             color: "var(--color-cinnabar)",
-            fontSize: "clamp(72px, 20vh, 160px)",
+            fontSize,
             textShadow: "0 2px 0 rgba(0,0,0,0.08)",
+            letterSpacing: lang === "en" ? "0.04em" : undefined,
           }}
         >
-          <div>翻</div>
-          <div>牌</div>
+          <div>{t("card.back.line1")}</div>
+          <div>{t("card.back.line2")}</div>
         </div>
       </div>
     </div>

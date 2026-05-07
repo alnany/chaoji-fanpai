@@ -1,6 +1,7 @@
 "use client";
 import { useGame } from "@/lib/store";
-import { RULES } from "@/lib/rules";
+import { getRules } from "@/lib/i18n";
+import { useT, useLang } from "@/lib/i18n";
 import { JDicePrompt } from "./DiceControls";
 import { useEffect, useState } from "react";
 import { sfx } from "@/lib/sfx";
@@ -12,8 +13,12 @@ import { sfx } from "@/lib/sfx";
  * optional rule body drawer.
  */
 export function RuleModal() {
-  const { showRule, lastFlipped, closeRule, phase, nineCount, aceCount } = useGame();
+  const { showRule, lastFlipped, closeRule, phase, nineCount, aceCount } =
+    useGame();
   const [showBody, setShowBody] = useState(false);
+  const t = useT();
+  const lang = useLang((s) => s.lang);
+  const RULES = getRules(lang);
 
   useEffect(() => {
     if (!showRule) setShowBody(false);
@@ -48,30 +53,39 @@ export function RuleModal() {
             let p: Prompt | null = null;
             switch (rank) {
               case "3":
-                p = { head: "大喊「我脑子有病！」", sub: "谁跟你说话 · 罚 1 杯" };
+                p = { head: t("prompt.3.head"), sub: t("prompt.3.sub") };
                 break;
               case "4":
-                p = { head: "咬住纸巾传下家", sub: "手碰 1 杯 · 掉地交杯酒" };
+                p = { head: t("prompt.4.head"), sub: t("prompt.4.sub") };
                 break;
               case "7":
-                p = { head: "真心话 or 大冒险", sub: "先举手的出题 · 拒绝罚 10 杯" };
+                p = { head: t("prompt.7.head"), sub: t("prompt.7.sub") };
                 break;
               case "9":
-                p = { head: `指定一个人喝 ${nineCount} 杯`, sub: "不能指自己 · 不能拆" };
+                p = {
+                  head: t("prompt.9.head", { n: nineCount }),
+                  sub: t("prompt.9.sub"),
+                };
                 break;
               case "10":
-                p = { head: "方向反转", sub: "下一个换上家" };
+                p = { head: t("prompt.10.head"), sub: t("prompt.10.sub") };
                 break;
               case "K":
-                p = { head: "喝 1 杯", sub: "口头定义下一张 K 的喝法" };
+                p = { head: t("prompt.K.head"), sub: t("prompt.K.sub") };
                 break;
               case "A": {
                 const left = 4 - aceCount;
-                p = { head: `第 ${aceCount} 张 A · 还有 ${left} 张`, sub: "第 4 张 A · 游戏结束" };
+                p = {
+                  head: t("prompt.A.head", { n: aceCount, left }),
+                  sub: t("prompt.A.sub"),
+                };
                 break;
               }
               case "JOKER":
-                p = { head: "找一个人猜拳，输的认主人", sub: "主人罚酒可找狗代喝" };
+                p = {
+                  head: t("prompt.JOKER.head"),
+                  sub: t("prompt.JOKER.sub"),
+                };
                 break;
               default:
                 p = null;
@@ -92,22 +106,27 @@ export function RuleModal() {
           })()}
           <div className="flex gap-2 items-stretch">
             <button
-              onClick={() => { sfx.softTap(); setShowBody((v) => !v); }}
+              onClick={() => {
+                sfx.softTap();
+                setShowBody((v) => !v);
+              }}
               className="shrink-0 px-4 py-3 rounded-lg bg-[var(--color-ink)]/80 backdrop-blur border border-[var(--color-red-gold)]/60 text-[var(--color-red-gold)] text-sm font-display"
-              aria-label="查看规则"
+              aria-label={t("rule.btn.openBody.aria")}
             >
-              📖 规则
+              {t("rule.btn.openBody")}
             </button>
             {isJBlocking ? (
               <div className="flex-1 flex items-center justify-center px-3 py-3 rounded-lg bg-[var(--color-ink)]/80 backdrop-blur border border-[var(--color-cinnabar)]/40 text-[var(--color-cinnabar)] text-xs text-center">
-                ⚠️ 必须加骰子才能继续
+                {t("rule.btn.jBlock")}
               </div>
             ) : (
               <button
                 onClick={close}
                 className="flex-1 py-3 rounded-lg bg-[var(--color-cinnabar)] text-[var(--color-ivory)] font-brush text-lg gold-edge"
               >
-                {phase === "ended" ? "游戏结束" : "完成 · 下一位"}
+                {phase === "ended"
+                  ? t("rule.btn.gameOver")
+                  : t("rule.btn.next")}
               </button>
             )}
           </div>
@@ -126,13 +145,16 @@ export function RuleModal() {
           >
             <div className="flex items-center justify-between">
               <div className={`font-brush text-2xl ${rule.color}`}>
-                {rule.title} · 规则
+                {rule.title} {t("rule.body.titleSuffix")}
               </div>
               <button
-                onClick={() => { sfx.softTap(); setShowBody(false); }}
+                onClick={() => {
+                  sfx.softTap();
+                  setShowBody(false);
+                }}
                 className="text-xs opacity-60 italic"
               >
-                关闭
+                {t("rule.body.close")}
               </button>
             </div>
             <ul className="space-y-1.5 text-sm text-[var(--color-ink)]/90">
